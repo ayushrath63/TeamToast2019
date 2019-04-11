@@ -46,7 +46,7 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
-
+#define SWO_DEBUG_ENABLED 0
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -107,6 +107,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   //Undocumented stuff, needed to start encoder
+  TIM2->EGR=TIM_EGR_UG;
+  TIM2->CR1=TIM_CR1_CEN;
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1 | TIM_CHANNEL_2);
   TIM2->EGR=TIM_EGR_UG;
   TIM2->CR1=TIM_CR1_CEN;
