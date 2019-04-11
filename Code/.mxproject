@@ -1,7 +1,7 @@
 [PreviousGenFiles]
-HeaderPath=C:/Users/Ayush Rath/Documents/TeamToast2019/Code/TeamToast/Inc
+HeaderPath=C:/Users/Ayush Rath/Documents/TeamToast2019/Code/Inc
 HeaderFiles=gpio.h;adc.h;spi.h;tim.h;usart.h;stm32f4xx_it.h;stm32f4xx_hal_conf.h;main.h;
-SourcePath=C:/Users/Ayush Rath/Documents/TeamToast2019/Code/TeamToast/Src
+SourcePath=C:/Users/Ayush Rath/Documents/TeamToast2019/Code/Src
 SourceFiles=gpio.c;adc.c;spi.c;tim.c;usart.c;stm32f4xx_it.c;stm32f4xx_hal_msp.c;main.c;
 
 [PreviousLibFiles]
