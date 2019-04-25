@@ -71,7 +71,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
                                 
 
 /* USER CODE BEGIN Prototypes */
-
+void setPWM(TIM_HandleTypeDef timer, uint32_t channel, uint16_t period, uint16_t pulse);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

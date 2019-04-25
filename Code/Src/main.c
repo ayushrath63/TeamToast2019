@@ -107,8 +107,6 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   //Undocumented stuff, needed to start encoder
-  TIM2->EGR=TIM_EGR_UG;
-  TIM2->CR1=TIM_CR1_CEN;
   HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1 | TIM_CHANNEL_2);
   TIM2->EGR=TIM_EGR_UG;
   TIM2->CR1=TIM_CR1_CEN;
@@ -117,6 +115,40 @@ int main(void)
   HAL_TIM_Encoder_Start(&htim5,  TIM_CHANNEL_1 | TIM_CHANNEL_2);
   TIM5->EGR=TIM_EGR_UG;
   TIM5->CR1=TIM_CR1_CEN;
+
+  HAL_TIM_Base_Start(&htim3);
+
+  HAL_TIM_Base_Start(&htim4);
+
+  uint8_t buf[2];
+  buf[0] = 0x6A; //User control reg
+  buf[1] = 0x10; //I2c disable bit
+
+  HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_RESET);
+  HAL_SPI_Transmit(&hspi2, buf, sizeof(buf), 100);
+  HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_SET);
+  HAL_Delay(10);
+
+  buf[0] = 0x6B; //power mgmt register
+  buf[1] = 0x80; //reset
+  HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_RESET);
+  HAL_SPI_Transmit(&hspi2, buf, sizeof(buf), 100);
+  HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_SET);
+  HAL_Delay(10);
+
+  buf[0] = 0x68; //signal path
+  buf[1] = 0x07; //reset
+  HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_RESET);
+  HAL_SPI_Transmit(&hspi2, buf, sizeof(buf), 100);
+  HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_SET);
+  HAL_Delay(10);
+
+  buf[0] = 0x6B; //signal path
+  buf[1] = 0x03; //gyro pll select
+  HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_RESET);
+  HAL_SPI_Transmit(&hspi2, buf, sizeof(buf), 100);
+  HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_SET);
+  HAL_Delay(10);
 
   /* USER CODE END 2 */
 
@@ -127,10 +159,29 @@ int main(void)
   {
     HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_10);
     
-    char buf[16];
-    sprintf(buf, "2:%d, 5:%d\r\n", TIM2->CNT, TIM5->CNT);
+    //setPWM(htim3, TIM_CHANNEL_2, 255, 127);
+    //setPWM(htim3, TIM_CHANNEL_2, 255, 127);
+    //setPWM(htim4, TIM_CHANNEL_1, 255, 127);
+    // char buf[16];
+    // sprintf(buf, "2:%d, 5:%d\r\n", TIM2->CNT, TIM5->CNT);
 
-    print((uint8_t*)buf);
+    // print((uint8_t*)buf);
+
+
+    uint8_t addr, data;
+    addr = 0x75 | 0x80; // WHOAMI | read flag
+    data = 0;
+    HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_RESET);
+    HAL_SPI_Transmit(&hspi2, &addr, sizeof(addr), 100);
+    HAL_SPI_Receive(&hspi2, &data, sizeof(data), 100);
+    HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_SET);
+    HAL_Delay(10);
+
+
+    char printbuf[32];
+    sprintf(printbuf, "WHOAMI: %hd\r\n", data);
+    print((uint8_t*)printbuf);
+
 
     HAL_Delay(100);
   /* USER CODE END WHILE */
@@ -138,7 +189,7 @@ int main(void)
   /* USER CODE BEGIN 3 */
 
   }
-  /* USER CODE END 3 */
+  /* USER CODE END 3 */ 
 
 }
 
