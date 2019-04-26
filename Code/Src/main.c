@@ -150,6 +150,54 @@ int main(void)
   HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_SET);
   HAL_Delay(10);
 
+  //IMU -> read WHOAMI reg
+  uint8_t addr, data;
+  addr = 0x75 | 0x80; // WHOAMI | read flag
+  data = 0;
+  HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_RESET);
+  HAL_SPI_Transmit(&hspi2, &addr, sizeof(addr), 100);
+  HAL_SPI_Receive(&hspi2, &data, sizeof(data), 100);
+  HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_SET);
+  HAL_Delay(10);
+  if(data != 0x70)
+  {
+    char printbuf[32] = "ERROR";
+    //sprintf(printbuf, "WHOAMI: %hd\r\n", data);
+    print((uint8_t*)printbuf);
+  }
+  
+  //Notes:
+  /*
+  Registers 19 to 24 – Gyro Offset Registers
+  25 -> sample rate divider
+  26-> config
+  */
+  //Configuration
+  //set sample rate to 1khz
+  buf[0] = 0x19; //Sample rate divider
+  buf[1] = 0x00; //1KHz
+  HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_RESET);
+  HAL_SPI_Transmit(&hspi2, buf, sizeof(buf), 100);
+  HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_SET);
+  HAL_Delay(10);
+
+  //setup dlpf
+  buf[0] = 0x1A; //Config
+  buf[1] = 0x01; //DLPF -> 184Hz
+  HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_RESET);
+  HAL_SPI_Transmit(&hspi2, buf, sizeof(buf), 100);
+  HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_SET);
+  HAL_Delay(10);
+  
+  //set scale
+  buf[0] = 0x1A; //Gyro Config
+  buf[1] = 0x18; //FS -> 2000dps
+  HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_RESET);
+  HAL_SPI_Transmit(&hspi2, buf, sizeof(buf), 100);
+  HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_SET);
+  HAL_Delay(10);
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -159,30 +207,31 @@ int main(void)
   {
     HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_10);
     
-    //setPWM(htim3, TIM_CHANNEL_2, 255, 127);
-    //setPWM(htim3, TIM_CHANNEL_2, 255, 127);
-    //setPWM(htim4, TIM_CHANNEL_1, 255, 127);
+    setPWM(htim3, TIM_CHANNEL_1, 255, 127);
+    setPWM(htim4, TIM_CHANNEL_1, 255, 127);
+    
+
     // char buf[16];
     // sprintf(buf, "2:%d, 5:%d\r\n", TIM2->CNT, TIM5->CNT);
 
     // print((uint8_t*)buf);
 
-
-    uint8_t addr, data;
-    addr = 0x75 | 0x80; // WHOAMI | read flag
-    data = 0;
+    uint8_t addrH = 0x47 | 0x80; // Gyro Z high byte | read flag
+    uint8_t addrL = 0x48 | 0x80; // Gyro Z high byte | read flag
+    int16_t gzData;
+    uint8_t dataH, dataL;
     HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_RESET);
-    HAL_SPI_Transmit(&hspi2, &addr, sizeof(addr), 100);
-    HAL_SPI_Receive(&hspi2, &data, sizeof(data), 100);
+    HAL_SPI_Transmit(&hspi2, &addrH, sizeof(addrH), 100);
+    HAL_SPI_Receive(&hspi2, &dataH, sizeof(dataH), 100);
+    HAL_SPI_Transmit(&hspi2, &addrL, sizeof(addrL), 100);
+    HAL_SPI_Receive(&hspi2, &dataL, sizeof(dataL), 100);
     HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_SET);
     HAL_Delay(10);
 
-
-    char printbuf[32];
-    sprintf(printbuf, "WHOAMI: %hd\r\n", data);
-    print((uint8_t*)printbuf);
-
-
+    gzData = ((int16_t)dataH) << 8 | ((int16_t)dataL);
+    char gzbuf[64];
+    sprintf(gzbuf, "GyroZ: %d, %d, %hd\r\n", dataH, dataL, gzData);
+    print((uint8_t*)gzbuf);
     HAL_Delay(100);
   /* USER CODE END WHILE */
 
