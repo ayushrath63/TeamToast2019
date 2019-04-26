@@ -1,15 +1,17 @@
 SHELL=bash
 
 # System configuration
-CC = arm-none-eabi-gcc
-CXX = arm-none-eabi-g++
+PREFIX = arm-none-eabi-
+CC = $(PREFIX)gcc
+CXX = $(PREFIX)g++
 RM = rm -rf
 INC = -Iinc -Ilib/STM32F4xx_HAL_Driver/Inc -Ilib/STM32F4xx_HAL_Driver/Inc/Legacy -Ilib/CMSIS/
-BIN_NAME = main
+BIN_NAME = Toast
 DEBUG_DIR = debugbin
 RELEASE_DIR = bin
 LDSCRIPT = "STM32F411RETx_FLASH.ld"
 MCU = "STM32F411xE"
+
 #Debug Settings
 ifeq ($(Debug),1)
 
@@ -70,16 +72,22 @@ OBJS := $(OBJS:%.cpp=$(OBJECT_DIR)/%.o)
 # Build project
 # Major targets
 ###############
-all: $(OBJS) buildelf
+all: $(OBJS) buildelf objdump buildbin
+	@echo -e "Build Complete"
 
 buildelf: $(OBJS)
 	@echo -e "Linking..."
 	$(CXX) -o "$(BIN_DIR)/$(BIN_NAME).elf" $(OBJS) $(LDFLAGS)
 	@echo -e ""
 
+buildbin: buildelf
+	@echo -e "Copying Object..."
+	$(PREFIX)objcopy -O binary $(BIN_DIR)/$(BIN_NAME).elf $(BIN_DIR)/$(BIN_NAME).bin
+	@echo -e ""
+
 objdump: $(OBJS) buildelf
 	@echo -e "Generating Object Dump..."
-	arm-none-eabi-objdump -Cd "$(BIN_DIR)/$(BIN_NAME).elf" > "$(BIN_DIR)/$(BIN_NAME).txt"
+	$(PREFIX)objdump -Cd "$(BIN_DIR)/$(BIN_NAME).elf" > "$(BIN_DIR)/$(BIN_NAME).txt"
 	@echo -e ""
 
 clean:
