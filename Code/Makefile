@@ -9,7 +9,7 @@ INC = -Iinc -Ilib/STM32F4xx_HAL_Driver/Inc -Ilib/STM32F4xx_HAL_Driver/Inc/Legacy
 BIN_NAME = Toast
 DEBUG_DIR = debugbin
 RELEASE_DIR = bin
-LDSCRIPT = "STM32F411RETx_FLASH.ld"
+LDSCRIPT = "STM32F411RE_Linker.ld"
 MCU = "STM32F411xE"
 
 #Debug Settings
@@ -87,7 +87,7 @@ buildbin: buildelf
 
 objdump: $(OBJS) buildelf
 	@echo -e "Generating Object Dump..."
-	$(PREFIX)objdump -Cd "$(BIN_DIR)/$(BIN_NAME).elf" > "$(BIN_DIR)/$(BIN_NAME).txt"
+	$(PREFIX)objdump -xCd "$(BIN_DIR)/$(BIN_NAME).elf" > "$(BIN_DIR)/$(BIN_NAME).txt"
 	@echo -e ""
 
 clean:

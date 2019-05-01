@@ -62,7 +62,7 @@ extern void _Error_Handler(char *, int);
 void MX_ADC1_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+uint32_t readADC(ADC_HandleTypeDef* hadc, uint32_t channel, uint32_t sampleTime);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

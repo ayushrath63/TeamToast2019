@@ -58,8 +58,8 @@ void MX_ADC1_Init(void)
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc1.Init.ScanConvMode = DISABLE;
-  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.ScanConvMode = ENABLE;
+  hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
@@ -153,7 +153,35 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 } 
 
 /* USER CODE BEGIN 1 */
+uint32_t readADC(ADC_HandleTypeDef* hadc, uint32_t channel, uint32_t sampleTime)
+{
+  ADC_ChannelConfTypeDef sConfig;
 
+  sConfig.Channel = channel;
+  sConfig.Rank = 1;
+  sConfig.SamplingTime = sampleTime;
+  if (HAL_ADC_ConfigChannel(hadc, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  // Start the conversion process
+  if (HAL_ADC_Start(hadc) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  HAL_StatusTypeDef r;
+  // Wait for the end of conversion.
+  if ((r = HAL_ADC_PollForConversion(hadc, 1)) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  // Check if the conversion of regular channel is finished
+  while ((HAL_ADC_GetState(hadc) & HAL_ADC_STATE_EOC_REG) != HAL_ADC_STATE_EOC_REG);
+  return HAL_ADC_GetValue(hadc);
+}
 /* USER CODE END 1 */
 
 /**
