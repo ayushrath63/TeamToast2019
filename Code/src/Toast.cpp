@@ -46,9 +46,11 @@
 #include "gpio.h"
 
 
+
 /* USER CODE BEGIN Includes */
 #define SWO_DEBUG_ENABLED 0
 #include "IMU.hpp"
+#include "motor.hpp"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -117,14 +119,15 @@ int main(void)
   TIM5->EGR=TIM_EGR_UG;
   TIM5->CR1=TIM_CR1_CEN;
 
-  HAL_TIM_Base_Start(&htim3);
-
-  HAL_TIM_Base_Start(&htim4);
+  
 
   HAL_ADC_Start(&hadc1);
 
   IMU imu(hspi2);
   imu.init();
+
+  Motor motorL(htim3);
+  Motor motorR(htim4);
 
   /* USER CODE END 2 */
 
@@ -164,10 +167,8 @@ int main(void)
     sprintf(gzbuf, "%ld, %ld, %ld, %ld\r\n", ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4);
     print((uint8_t*)gzbuf);
     
-    
-    //setPWM(htim3, TIM_CHANNEL_1, 255, 127);
-    //setPWM(htim4, TIM_CHANNEL_1, 255, 127);
-    
+    motorR.setSpeed(500);
+    motorL.setSpeed(500);
 
     // char buf[16];
     // sprintf(buf, "2:%d, 5:%d\r\n", TIM2->CNT, TIM5->CNT);
