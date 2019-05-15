@@ -169,55 +169,55 @@ int main(void)
   while (1)
   {
     char gzbuf[128];
-    // int32_t ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4;
+    int32_t ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4;
 
-    // HAL_GPIO_WritePin(IR_L_GPIO_Port, IR_L_Pin, GPIO_PIN_SET);
-    // ADC_VAL1 = readADC(&hadc1,ADC_CHANNEL_8, 500);
-    // HAL_Delay(500);
-    // HAL_GPIO_WritePin(IR_L_GPIO_Port, IR_L_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(IR_L_GPIO_Port, IR_L_Pin, GPIO_PIN_SET);
+    ADC_VAL1 = readADC(&hadc1,ADC_CHANNEL_8, 500);
+    HAL_GPIO_WritePin(IR_L_GPIO_Port, IR_L_Pin, GPIO_PIN_RESET);
     
-    // HAL_GPIO_WritePin(IR_R_GPIO_Port, IR_R_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(IR_R_GPIO_Port, IR_R_Pin, GPIO_PIN_SET);
+    ADC_VAL2 = readADC(&hadc1,ADC_CHANNEL_14, 500);
+    HAL_GPIO_WritePin(IR_R_GPIO_Port, IR_R_Pin, GPIO_PIN_RESET);
+    
+    HAL_GPIO_WritePin(IR_FL_GPIO_Port, IR_FL_Pin, GPIO_PIN_SET);
+    ADC_VAL3 = readADC(&hadc1,ADC_CHANNEL_7, 500);
+    HAL_GPIO_WritePin(IR_FL_GPIO_Port, IR_FL_Pin, GPIO_PIN_RESET);
+    
+    HAL_GPIO_WritePin(IR_FR_GPIO_Port, IR_FR_Pin, GPIO_PIN_SET);
+    
+    ADC_VAL4 = readADC(&hadc1,ADC_CHANNEL_5, 500); 
+    HAL_GPIO_WritePin(IR_FR_GPIO_Port, IR_FR_Pin, GPIO_PIN_RESET);
 
-    // ADC_VAL2 = readADC(&hadc1,ADC_CHANNEL_14, 500);
-    // HAL_Delay(500);
-    // HAL_GPIO_WritePin(IR_R_GPIO_Port, IR_R_Pin, GPIO_PIN_RESET);
-    
-    // HAL_GPIO_WritePin(IR_FL_GPIO_Port, IR_FL_Pin, GPIO_PIN_SET);
-    // ADC_VAL3 = readADC(&hadc1,ADC_CHANNEL_7, 500);
-    // HAL_Delay(500);
-    // HAL_GPIO_WritePin(IR_FL_GPIO_Port, IR_FL_Pin, GPIO_PIN_RESET);
-    
-    // HAL_GPIO_WritePin(IR_FR_GPIO_Port, IR_FR_Pin, GPIO_PIN_SET);
-    
-    // ADC_VAL4 = readADC(&hadc1,ADC_CHANNEL_5, 500);
-    // HAL_Delay(500); 
-    // HAL_GPIO_WritePin(IR_FR_GPIO_Port, IR_FR_Pin, GPIO_PIN_RESET);
-
-    // sprintf(gzbuf, "%ld, %ld, %ld, %ld\r\n", ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4);
-    // print((uint8_t*)gzbuf);
+    sprintf(gzbuf, "%ld\r\n", ADC_VAL3);
+    //sprintf(gzbuf, "%ld, %ld, %ld, %ld\r\n", ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4);
+    print((uint8_t*)gzbuf);
 
     //Test Motors
-    /*
-    motorL.setSpeed(200);
-    motorR.setSpeed(-200);
-    */
-    if(complete)
-    {
-      motorR.setSpeed(0);
-      motorL.setSpeed(0);
-      if(!HAL_GPIO_ReadPin(Btn1_GPIO_Port, Btn1_Pin))
-      {
-        char msg[10] = "\r\ndone\r\n";
-        for(int i = 0; i < LOGLEN; ++i)
-        {
-          sprintf(gzbuf, "%d,\t%d\r\n", datalog2[i], datalog[i]);
-          print((uint8_t*)gzbuf);
-        }
-        print((uint8_t*)msg);
-        return 0;
-      }
-    }
-    HAL_Delay(10);
+    
+    // motorL.setSpeed(200);
+    // motorR.setSpeed(-200);
+    // if(ADC_VAL1 > 2000)
+    // {
+    //   motorL.setSpeed(0);
+    //   motorR.setSpeed(0);
+    // }
+    
+    // if(complete)
+    // {
+    //   motorR.setSpeed(0);
+    //   motorL.setSpeed(0);
+    //   if(!HAL_GPIO_ReadPin(Btn1_GPIO_Port, Btn1_Pin))
+    //   {
+    //     char msg[10] = "\r\ndone\r\n";
+    //     for(int i = 0; i < LOGLEN; ++i)
+    //     {
+    //       sprintf(gzbuf, "%d,\t%d\r\n", datalog2[i], datalog[i]);
+    //       print((uint8_t*)gzbuf);
+    //     }
+    //     print((uint8_t*)msg);
+    //   }
+    // }
+    // HAL_Delay(10);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
