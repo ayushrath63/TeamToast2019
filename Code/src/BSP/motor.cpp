@@ -1,12 +1,13 @@
 #include "Motor.hpp"
 
-Motor::Motor(TIM_HandleTypeDef timeHandle) : m_timeHandle(timeHandle) {
+Motor::Motor(TIM_HandleTypeDef timeHandle, bool flipped)
+ : m_timeHandle(timeHandle), m_flipped(flipped) {
 	HAL_TIM_Base_Start(&m_timeHandle);
 }
 
 
 void Motor::setSpeed (int speed) {
-	speed = speed*4096/1000;
+	speed = m_flipped ? speed*-4096/1000 : speed*4096/1000;
 	if (speed > 0 ) {
 		setPWM(m_timeHandle, TIM_CHANNEL_2, 4095, 0);
 		setPWM(m_timeHandle, TIM_CHANNEL_1, 4095, speed);		

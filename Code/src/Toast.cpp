@@ -71,8 +71,8 @@ volatile int32_t* logPtr2 = datalog2;
 volatile bool complete = false;
 
 volatile float error = 0;
-const int32_t CPR_R = 6121;
-const int32_t CPR_L = 6201;
+const int32_t CNT_PER_REV = 5760;
+const int32_t TARGET_SPEED = 80;
 #define LOGLEN 1000
 /* USER CODE END PV */
 
@@ -91,15 +91,17 @@ void HAL_SYSTICK_Callback(void)
   {
     prevEncL = EncL;
     prevEncR = EncR;
-    EncL = TIM2->CNT;
+    EncL = -1*TIM2->CNT;
     EncR = TIM5->CNT;
+    diffL = EncL - prevEncL;
+    diffR = EncR - prevEncR;
     *logPtr = EncL;
     *logPtr2 = EncR;
     logPtr++;
     logPtr2++;
   }
   if(HAL_GetTick() > LOGLEN)
-    complete = true;
+    complete = false;
   return;
 }
 /* USER CODE END 0 */
@@ -160,7 +162,7 @@ int main(void)
   imu.init();
 
   Motor motorL(htim3);
-  Motor motorR(htim4);
+  Motor motorR(htim4, true);
 
   /* USER CODE END 2 */
 
@@ -188,20 +190,29 @@ int main(void)
     ADC_VAL4 = readADC(&hadc1,ADC_CHANNEL_5, 500); 
     HAL_GPIO_WritePin(IR_FR_GPIO_Port, IR_FR_Pin, GPIO_PIN_RESET);
 
-    sprintf(gzbuf, "%ld\r\n", ADC_VAL3);
+    //sprintf(gzbuf, "%ld\r\n", ADC_VAL3);
     //sprintf(gzbuf, "%ld, %ld, %ld, %ld\r\n", ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4);
+    //print((uint8_t*)gzbuf);
+
+    // Test Motors
+    
+    
+    // if(EncR > CNT_PER_REV * 3)
+    // {
+    //   motorR.setSpeed(200);
+    // } else 
+    motorR.setSpeed(-200);
+
+    // if(EncL < CNT_PER_REV * -3)
+    // {
+    //   motorL.setSpeed(-200);
+    // } else 
+    motorL.setSpeed(-210);
+
+    //sprintf(gzbuf, "%d,\t%d\r\n", diffL, diffR);
+    sprintf(gzbuf, "%d,\t%d\r\n", EncL, EncR);
     print((uint8_t*)gzbuf);
 
-    //Test Motors
-    
-    // motorL.setSpeed(200);
-    // motorR.setSpeed(-200);
-    // if(ADC_VAL1 > 2000)
-    // {
-    //   motorL.setSpeed(0);
-    //   motorR.setSpeed(0);
-    // }
-    
     // if(complete)
     // {
     //   motorR.setSpeed(0);
