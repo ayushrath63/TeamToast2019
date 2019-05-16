@@ -50,7 +50,9 @@
 /* USER CODE BEGIN Includes */
 #define SWO_DEBUG_ENABLED 0
 #include "IMU.hpp"
+#include "IRSensor.hpp"
 #include "Motor.hpp"
+
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -164,6 +166,10 @@ int main(void)
   Motor motorL(htim3);
   Motor motorR(htim4, true);
 
+  IRSensor IRLeft(&hadc1, ADC_CHANNEL_8, IR_L_GPIO_Port, IR_L_Pin);
+  IRSensor IRTopLeft(&hadc1, ADC_CHANNEL_7, IR_FL_GPIO_Port, IR_FL_Pin);
+  IRSensor IRTopRight(&hadc1, ADC_CHANNEL_5, IR_FR_GPIO_Port, IR_FR_Pin);
+  IRSensor IRRight(&hadc1, ADC_CHANNEL_14, IR_R_GPIO_Port, IR_R_Pin);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -172,23 +178,6 @@ int main(void)
   {
     char gzbuf[128];
     int32_t ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4;
-
-    HAL_GPIO_WritePin(IR_L_GPIO_Port, IR_L_Pin, GPIO_PIN_SET);
-    ADC_VAL1 = readADC(&hadc1,ADC_CHANNEL_8, 500);
-    HAL_GPIO_WritePin(IR_L_GPIO_Port, IR_L_Pin, GPIO_PIN_RESET);
-    
-    HAL_GPIO_WritePin(IR_R_GPIO_Port, IR_R_Pin, GPIO_PIN_SET);
-    ADC_VAL2 = readADC(&hadc1,ADC_CHANNEL_14, 500);
-    HAL_GPIO_WritePin(IR_R_GPIO_Port, IR_R_Pin, GPIO_PIN_RESET);
-    
-    HAL_GPIO_WritePin(IR_FL_GPIO_Port, IR_FL_Pin, GPIO_PIN_SET);
-    ADC_VAL3 = readADC(&hadc1,ADC_CHANNEL_7, 500);
-    HAL_GPIO_WritePin(IR_FL_GPIO_Port, IR_FL_Pin, GPIO_PIN_RESET);
-    
-    HAL_GPIO_WritePin(IR_FR_GPIO_Port, IR_FR_Pin, GPIO_PIN_SET);
-    
-    ADC_VAL4 = readADC(&hadc1,ADC_CHANNEL_5, 500); 
-    HAL_GPIO_WritePin(IR_FR_GPIO_Port, IR_FR_Pin, GPIO_PIN_RESET);
 
     //sprintf(gzbuf, "%ld\r\n", ADC_VAL3);
     //sprintf(gzbuf, "%ld, %ld, %ld, %ld\r\n", ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4);
