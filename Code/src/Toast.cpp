@@ -51,6 +51,7 @@
 #define SWO_DEBUG_ENABLED 0
 #include "IMU.hpp"
 #include "motor.hpp"
+#include "IRSensor.hpp"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -129,6 +130,10 @@ int main(void)
   Motor motorL(htim3);
   Motor motorR(htim4);
 
+  IRSensor IRLeft(&hadc1, ADC_CHANNEL_8, IR_L_GPIO_Port, IR_L_Pin);
+  IRSensor IRTopLeft(&hadc1, ADC_CHANNEL_7, IR_FL_GPIO_Port, IR_FL_Pin);
+  IRSensor IRTopRight(&hadc1, ADC_CHANNEL_5, IR_FR_GPIO_Port, IR_FR_Pin);
+  IRSensor IRRight(&hadc1, ADC_CHANNEL_14, IR_R_GPIO_Port, IR_R_Pin);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -138,37 +143,40 @@ int main(void)
   {
     char gzbuf[128];
 
-    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_10);
+    // HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_10);
 
     int32_t ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4;
+    // ADC_VAL1 = IRLeft.read();
+    // ADC_VAL2 = IRTopLeft.read();
+    // ADC_VAL3 = IRTopRight.read();
+    ADC_VAL4 = IRRight.read();
+    // HAL_GPIO_WritePin(IR_L_GPIO_Port, IR_L_Pin, GPIO_PIN_SET);
+    // ADC_VAL1 = readADC(&hadc1,ADC_CHANNEL_8, 500);
+    // HAL_Delay(500);
+    // HAL_GPIO_WritePin(IR_L_GPIO_Port, IR_L_Pin, GPIO_PIN_RESET);
+    
+    // HAL_GPIO_WritePin(IR_R_GPIO_Port, IR_R_Pin, GPIO_PIN_SET);
 
-    HAL_GPIO_WritePin(IR_L_GPIO_Port, IR_L_Pin, GPIO_PIN_SET);
-    ADC_VAL1 = readADC(&hadc1,ADC_CHANNEL_8, 500);
-    HAL_Delay(500);
-    HAL_GPIO_WritePin(IR_L_GPIO_Port, IR_L_Pin, GPIO_PIN_RESET);
+    // ADC_VAL2 = readADC(&hadc1,ADC_CHANNEL_14, 500);
+    // HAL_Delay(500);
+    // HAL_GPIO_WritePin(IR_R_GPIO_Port, IR_R_Pin, GPIO_PIN_RESET);
     
-    HAL_GPIO_WritePin(IR_R_GPIO_Port, IR_R_Pin, GPIO_PIN_SET);
-
-    ADC_VAL2 = readADC(&hadc1,ADC_CHANNEL_14, 500);
-    HAL_Delay(500);
-    HAL_GPIO_WritePin(IR_R_GPIO_Port, IR_R_Pin, GPIO_PIN_RESET);
+    // HAL_GPIO_WritePin(IR_FL_GPIO_Port, IR_FL_Pin, GPIO_PIN_SET);
+    // ADC_VAL3 = readADC(&hadc1,ADC_CHANNEL_7, 500);
+    // HAL_Delay(500);
+    // HAL_GPIO_WritePin(IR_FL_GPIO_Port, IR_FL_Pin, GPIO_PIN_RESET);
     
-    HAL_GPIO_WritePin(IR_FL_GPIO_Port, IR_FL_Pin, GPIO_PIN_SET);
-    ADC_VAL3 = readADC(&hadc1,ADC_CHANNEL_7, 500);
-    HAL_Delay(500);
-    HAL_GPIO_WritePin(IR_FL_GPIO_Port, IR_FL_Pin, GPIO_PIN_RESET);
+    // HAL_GPIO_WritePin(IR_FR_GPIO_Port, IR_FR_Pin, GPIO_PIN_SET);
     
-    HAL_GPIO_WritePin(IR_FR_GPIO_Port, IR_FR_Pin, GPIO_PIN_SET);
-    
-    ADC_VAL4 = readADC(&hadc1,ADC_CHANNEL_5, 500);
-    HAL_Delay(500); 
-    HAL_GPIO_WritePin(IR_FR_GPIO_Port, IR_FR_Pin, GPIO_PIN_RESET);
+    // ADC_VAL4 = readADC(&hadc1,ADC_CHANNEL_5, 500);
+    // HAL_Delay(500); 
+    // HAL_GPIO_WritePin(IR_FR_GPIO_Port, IR_FR_Pin, GPIO_PIN_RESET);
 
     sprintf(gzbuf, "%ld, %ld, %ld, %ld\r\n", ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4);
     print((uint8_t*)gzbuf);
     
-    motorR.setSpeed(500);
-    motorL.setSpeed(500);
+    // motorR.setSpeed(500);
+    // motorL.setSpeed(500);
 
     // char buf[16];
     // sprintf(buf, "2:%d, 5:%d\r\n", TIM2->CNT, TIM5->CNT);
@@ -178,7 +186,7 @@ int main(void)
     int8_t gzData = imu.read();
     sprintf(gzbuf, "%d\r\n", gzData);
     print((uint8_t*)gzbuf);
-    HAL_Delay(100);
+    HAL_Delay(5000);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
