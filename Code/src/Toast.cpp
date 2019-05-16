@@ -52,7 +52,7 @@
 #include "IMU.hpp"
 #include "IRSensor.hpp"
 #include "Motor.hpp"
-
+#include "PID.hpp"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -65,6 +65,8 @@ volatile int32_t prevEncL;
 volatile int32_t prevEncR;
 volatile int32_t diffL;
 volatile int32_t diffR;
+
+volatile bool updatePIDflag = false;
 
 volatile int32_t datalog[2048];
 volatile int32_t* logPtr = datalog;
@@ -105,6 +107,7 @@ void HAL_SYSTICK_Callback(void)
   if(HAL_GetTick() > LOGLEN)
     complete = false;
   return;
+  updatePIDflag = true;
 }
 /* USER CODE END 0 */
 
@@ -170,14 +173,29 @@ int main(void)
   IRSensor IRTopLeft(&hadc1, ADC_CHANNEL_7, IR_FL_GPIO_Port, IR_FL_Pin);
   IRSensor IRTopRight(&hadc1, ADC_CHANNEL_5, IR_FR_GPIO_Port, IR_FR_Pin);
   IRSensor IRRight(&hadc1, ADC_CHANNEL_14, IR_R_GPIO_Port, IR_R_Pin);
+
+  PID motorLPID(0.05,0.0,0.0);
+  PID motorRPID(0.05,0.0,0.0);
+  motorLPID.setTarget(80);
+  motorRPID.setTarget(80);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
     char gzbuf[128];
     int32_t ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4;
+
+    int32_t lSpeed, rSpeed;
+
+    if(updatePIDflag)
+    {
+      updatePIDflag = false;
+      lSpeed = motorLPID.update(diffL);
+      rSpeed = motorRPID.update(diffR);
+    }
 
     //sprintf(gzbuf, "%ld\r\n", ADC_VAL3);
     //sprintf(gzbuf, "%ld, %ld, %ld, %ld\r\n", ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4);
@@ -190,13 +208,13 @@ int main(void)
     // {
     //   motorR.setSpeed(200);
     // } else 
-    motorR.setSpeed(-200);
+    motorR.setSpeed(200 + lSpeed);
 
     // if(EncL < CNT_PER_REV * -3)
     // {
     //   motorL.setSpeed(-200);
     // } else 
-    motorL.setSpeed(-210);
+    motorL.setSpeed(200 + rSpeed);
 
     //sprintf(gzbuf, "%d,\t%d\r\n", diffL, diffR);
     sprintf(gzbuf, "%d,\t%d\r\n", EncL, EncR);
