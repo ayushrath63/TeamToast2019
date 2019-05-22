@@ -18,5 +18,5 @@ float PID::update(float signal)
     m_prevError = m_error;
     m_error = m_target - signal;
     m_cumError += m_error;
-    return m_Kp * m_error + m_Ki * m_cumError + m_Kd * m_prevError;
+    return m_Kp * m_error + m_Ki * m_cumError + m_Kd * (m_error-m_prevError);
 }

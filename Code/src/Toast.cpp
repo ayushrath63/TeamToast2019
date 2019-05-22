@@ -91,22 +91,23 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 void HAL_SYSTICK_Callback(void)
 {
-  if(!complete)
+/*  if(!complete)
   {
+    */
     prevEncL = EncL;
     prevEncR = EncR;
     EncL = -1*TIM2->CNT;
     EncR = TIM5->CNT;
     diffL = EncL - prevEncL;
     diffR = EncR - prevEncR;
-    *logPtr = EncL;
+    /**logPtr = EncL;
     *logPtr2 = EncR;
     logPtr++;
     logPtr2++;
   }
   if(HAL_GetTick() > LOGLEN)
     complete = false;
-  return;
+ */ 
   updatePIDflag = true;
 }
 /* USER CODE END 0 */
@@ -174,10 +175,12 @@ int main(void)
   IRSensor IRTopRight(&hadc1, ADC_CHANNEL_5, IR_FR_GPIO_Port, IR_FR_Pin);
   IRSensor IRRight(&hadc1, ADC_CHANNEL_14, IR_R_GPIO_Port, IR_R_Pin);
 
-  PID motorLPID(0.05,0.0,0.0);
-  PID motorRPID(0.05,0.0,0.0);
-  motorLPID.setTarget(80);
-  motorRPID.setTarget(80);
+  PID motorLPID(20.0,0.35,0.5);
+  PID motorRPID(20.0,0.35,0.5);
+  motorLPID.setTarget(20);
+  motorRPID.setTarget(20);
+
+  HAL_Delay(5000);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -208,16 +211,20 @@ int main(void)
     // {
     //   motorR.setSpeed(200);
     // } else 
-    motorR.setSpeed(200 + lSpeed);
+    motorR.setSpeed(rSpeed);
+
 
     // if(EncL < CNT_PER_REV * -3)
     // {
     //   motorL.setSpeed(-200);
     // } else 
-    motorL.setSpeed(200 + rSpeed);
-
-    //sprintf(gzbuf, "%d,\t%d\r\n", diffL, diffR);
-    sprintf(gzbuf, "%d,\t%d\r\n", EncL, EncR);
+    motorL.setSpeed(lSpeed);
+    //sprintf(gzbuf, "Speed Change: right:%d, left: %d\r\n", (int)(1000*rSpeed),(int)(1000*lSpeed));
+    //print((uint8_t*)gzbuf);
+    sprintf(gzbuf, "DiffR: %d, DiffL: %d \r\n", diffR, diffL);
+    //sprintf(gzbuf, "%d,\t%d\r\n", EncL, EncR);
+    
+    //sprintf(gzbuf, "Gyro: %d, DiffL: %d \r\n", imu.read());
     print((uint8_t*)gzbuf);
 
     // if(complete)
