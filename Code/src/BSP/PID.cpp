@@ -20,3 +20,10 @@ float PID::update(float signal)
     m_cumError += m_error;
     return m_Kp * m_error + m_Ki * m_cumError + m_Kd * (m_error-m_prevError);
 }
+
+void PID::resetError()
+{
+    m_cumError = 0;
+    m_error = 0;
+    m_prevError = 0;
+}

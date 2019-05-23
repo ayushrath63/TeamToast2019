@@ -6,6 +6,7 @@ class PID
 public:    
     PID(float Kp, float Ki, float Kd);
     void setTarget(float target);
+    void resetError();
     float update(float signal);
 private:
     float m_Kp, m_Ki, m_Kd;

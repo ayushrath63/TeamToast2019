@@ -78,6 +78,7 @@ volatile int timeCnt = 0;
 volatile float error = 0;
 const int32_t CNT_PER_REV = 5760;
 const int32_t TARGET_SPEED = 80;
+const int32_t CELL = 8000;//8920;
 #define LOGLEN 1000
 /* USER CODE END PV */
 
@@ -106,11 +107,11 @@ void HAL_SYSTICK_Callback(void)
     logPtr++;
     logPtr2++;
   }*/
-  if(HAL_GetTick() - timeCnt > 5000)
-  {
-    timeCnt = HAL_GetTick();
-    complete = true; 
-  }
+  // if(!complete && (HAL_GetTick() - timeCnt > 5000))
+  // {
+  //   timeCnt = HAL_GetTick();
+  //   complete = true; 
+  // }
   updatePIDflag = true;
 }
 /* USER CODE END 0 */
@@ -180,10 +181,10 @@ int main(void)
 
   PID motorLPID(20.0,0.35,0.5);
   PID motorRPID(20.0,0.35,0.5);
-  PID turnPID(0.03,0.0,0.02); // .025
+  PID turnPID(0.035,0.0001,0.01); // .025
   const int gyroTarget = 3675;
-  turnPID.setTarget(gyroTarget); // turn left GYRO
-  //turnPID.setTarget(2900);
+  //turnPID.setTarget(gyroTarget); // turn left GYRO
+  
 
   HAL_Delay(2000);
   int imuSum = 0; 
@@ -199,24 +200,44 @@ int main(void)
     int32_t ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4;
 
     int32_t lSpeed, rSpeed, motorTarget;
+    if(EncR< 4*CELL) {
+      
+      motorRPID.setTarget(20);
+    } else if(EncR > 4*CELL + 50) {
+      
+      motorRPID.setTarget(-5);
+    } else {
+      motorRPID.setTarget(0);
+    }
+    
+    if(EncL < 4*CELL) {
+      motorLPID.setTarget(20);
+    } else if(EncL > 4*CELL  + 50) {
+      motorLPID.setTarget(-5);
+    } else {
+      motorLPID.setTarget(0);
+    }
 
     if(updatePIDflag)
     {
       updatePIDflag = false;
-      if(gyroTarget - imuSum > 500){
-        motorTarget = 10; 
-      } else {
-        motorTarget = turnPID.update(imuSum);
-      }
+      // if(gyroTarget - imuSum > 500){
+      //   motorTarget = 10; 
+      // } else {
+      //   motorTarget = turnPID.update(imuSum);
+      // }
       lSpeed = motorLPID.update(diffL);
       rSpeed = motorRPID.update(diffR);
     }
 
-    if(complete)
-    {
-      complete = false;
-      imuSum = 0;
-    }
+    // if(complete)
+    // {
+    //   complete = false;
+    //   motorLPID.resetError();
+    //   motorRPID.resetError();
+    //   turnPID.resetError();
+    //   imuSum = 0;
+    // }
     //sprintf(gzbuf, "%ld\r\n", ADC_VAL3);
     //sprintf(gzbuf, "%ld, %ld, %ld, %ld\r\n", ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4);
     //print((uint8_t*)gzbuf);
