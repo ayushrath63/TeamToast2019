@@ -72,7 +72,7 @@ void IMU::init()
   
   //set scale
   buf[0] = 0x1A; //Gyro Config
-  buf[1] = 0x00; // 0x18; //FS -> 2000dps
+  buf[1] = 0x18; // 0x18; //FS -> 2000dps
   HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_RESET);
   HAL_SPI_Transmit(&spiHandle_, buf, sizeof(buf), 100);
   HAL_GPIO_WritePin(IMU_nCS_GPIO_Port, IMU_nCS_Pin, GPIO_PIN_SET);

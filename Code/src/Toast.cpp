@@ -74,6 +74,7 @@ volatile int32_t datalog2[2048];
 volatile int32_t* logPtr2 = datalog2;
 volatile bool complete = false;
 
+volatile int timeCnt = 0;
 volatile float error = 0;
 const int32_t CNT_PER_REV = 5760;
 const int32_t TARGET_SPEED = 80;
@@ -104,10 +105,12 @@ void HAL_SYSTICK_Callback(void)
     *logPtr2 = EncR;
     logPtr++;
     logPtr2++;
+  }*/
+  if(HAL_GetTick() - timeCnt > 5000)
+  {
+    timeCnt = HAL_GetTick();
+    complete = true; 
   }
-  if(HAL_GetTick() > LOGLEN)
-    complete = false;
- */ 
   updatePIDflag = true;
 }
 /* USER CODE END 0 */
@@ -177,8 +180,10 @@ int main(void)
 
   PID motorLPID(20.0,0.35,0.5);
   PID motorRPID(20.0,0.35,0.5);
-  PID turnPID(0.0072,0.0,0.02);
-  turnPID.setTarget(3100); // turn left
+  PID turnPID(0.03,0.0,0.02); // .025
+  const int gyroTarget = 3675;
+  turnPID.setTarget(gyroTarget); // turn left GYRO
+  //turnPID.setTarget(2900);
 
   HAL_Delay(2000);
   int imuSum = 0; 
@@ -198,22 +203,25 @@ int main(void)
     if(updatePIDflag)
     {
       updatePIDflag = false;
-      motorTarget = turnPID.update(imuSum);
+      if(gyroTarget - imuSum > 500){
+        motorTarget = 10; 
+      } else {
+        motorTarget = turnPID.update(imuSum);
+      }
       lSpeed = motorLPID.update(diffL);
       rSpeed = motorRPID.update(diffR);
     }
 
+    if(complete)
+    {
+      complete = false;
+      imuSum = 0;
+    }
     //sprintf(gzbuf, "%ld\r\n", ADC_VAL3);
     //sprintf(gzbuf, "%ld, %ld, %ld, %ld\r\n", ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4);
     //print((uint8_t*)gzbuf);
 
     // Test Motors
-    
-    
-    // if(EncR > CNT_PER_REV * 3)
-    // {
-    //   motorR.setSpeed(200);
-    // } else 
 
 
 
@@ -222,20 +230,7 @@ int main(void)
     
     motorR.setSpeed(rSpeed);
     motorL.setSpeed(lSpeed);
-    if ( rSpeed > -0.5 &&  lSpeed < 0.5)
-    {
-      turnPID.setTarget(-3000);
-    }
 
-     
-    
-
-
-    // if(EncL < CNT_PER_REV * -3)
-    // {
-    //   motorL.setSpeed(-200);
-    // } else 
-    
     //sprintf(gzbuf, "Speed Change: right:%d, left: %d\r\n", (int)(1000*rSpeed),(int)(1000*lSpeed));
     //print((uint8_t*)gzbuf);
     //sprintf(gzbuf, "DiffR: %d, DiffL: %d \r\n", diffR, diffL);
@@ -243,9 +238,9 @@ int main(void)
     
     //sprintf(gzbuf, "Gyro: %d, DiffL: %d \r\n", imu.read());
     //print((uint8_t*)gzbuf);
-
-    imuSum += imu.read();
-    sprintf(gzbuf, "IMU sum: %d\r\n", imuSum);
+    int32_t reading = imu.read();
+    imuSum += reading;
+    sprintf(gzbuf, "IMU: %d, SUM: %d\r\n", reading, imuSum);
     print((uint8_t*)gzbuf);
 
     // if(complete)
