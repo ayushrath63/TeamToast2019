@@ -177,8 +177,8 @@ int main(void)
 
   PID motorLPID(20.0,0.35,0.5);
   PID motorRPID(20.0,0.35,0.5);
-  PID turnPID(0.0065,0.0,0.0);
-  turnPID.setTarget(3050);
+  PID turnPID(0.0072,0.0,0.02);
+  turnPID.setTarget(3100); // turn left
 
   HAL_Delay(2000);
   int imuSum = 0; 
@@ -222,6 +222,10 @@ int main(void)
     
     motorR.setSpeed(rSpeed);
     motorL.setSpeed(lSpeed);
+    if ( rSpeed > -0.5 &&  lSpeed < 0.5)
+    {
+      turnPID.setTarget(-3000);
+    }
 
      
     
