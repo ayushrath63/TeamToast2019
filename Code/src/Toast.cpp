@@ -177,10 +177,12 @@ int main(void)
 
   PID motorLPID(20.0,0.35,0.5);
   PID motorRPID(20.0,0.35,0.5);
-  motorLPID.setTarget(20);
-  motorRPID.setTarget(20);
+  PID turnPID(0.0065,0.0,0.0);
+  turnPID.setTarget(3050);
 
-  HAL_Delay(5000);
+  HAL_Delay(2000);
+  int imuSum = 0; 
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -191,11 +193,12 @@ int main(void)
     char gzbuf[128];
     int32_t ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4;
 
-    int32_t lSpeed, rSpeed;
+    int32_t lSpeed, rSpeed, motorTarget;
 
     if(updatePIDflag)
     {
       updatePIDflag = false;
+      motorTarget = turnPID.update(imuSum);
       lSpeed = motorLPID.update(diffL);
       rSpeed = motorRPID.update(diffR);
     }
@@ -211,20 +214,34 @@ int main(void)
     // {
     //   motorR.setSpeed(200);
     // } else 
+
+
+
+    motorLPID.setTarget(-motorTarget);
+    motorRPID.setTarget(motorTarget);
+    
     motorR.setSpeed(rSpeed);
+    motorL.setSpeed(lSpeed);
+
+     
+    
 
 
     // if(EncL < CNT_PER_REV * -3)
     // {
     //   motorL.setSpeed(-200);
     // } else 
-    motorL.setSpeed(lSpeed);
+    
     //sprintf(gzbuf, "Speed Change: right:%d, left: %d\r\n", (int)(1000*rSpeed),(int)(1000*lSpeed));
     //print((uint8_t*)gzbuf);
-    sprintf(gzbuf, "DiffR: %d, DiffL: %d \r\n", diffR, diffL);
-    //sprintf(gzbuf, "%d,\t%d\r\n", EncL, EncR);
+    //sprintf(gzbuf, "DiffR: %d, DiffL: %d \r\n", diffR, diffL);
+    //sprintf(gzbuf, "Encoder L:%d,\t EncoderR:%d\r\n", EncL, EncR);
     
     //sprintf(gzbuf, "Gyro: %d, DiffL: %d \r\n", imu.read());
+    //print((uint8_t*)gzbuf);
+
+    imuSum += imu.read();
+    sprintf(gzbuf, "IMU sum: %d\r\n", imuSum);
     print((uint8_t*)gzbuf);
 
     // if(complete)
