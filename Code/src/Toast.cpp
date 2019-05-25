@@ -275,7 +275,7 @@ int main(void)
     //print((uint8_t*)gzbuf);
     // int32_t reading = imu.read();
     // imuSum += reading;
-    sprintf(gzbuf, "MP: %d, %d, %d, %d\r\n", (int)speed, (int)mp.m_tAccel, (int)mp.m_tCruise, (int)(mp.m_totalTime));
+    //sprintf(gzbuf, "MP: %d, %d, %d, %d\r\n", (int)speed, (int)mp.m_tAccel, (int)mp.m_tCruise, (int)(mp.m_totalTime));
     print((uint8_t*)gzbuf);
 
     // if(complete)
