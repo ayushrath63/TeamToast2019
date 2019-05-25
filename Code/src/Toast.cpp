@@ -196,7 +196,8 @@ int main(void)
   int32_t lSpeed, rSpeed, motorTarget;
   char gzbuf[128];
   float speed = 0;
-  int32_t start_dt = 0;
+  int32_t dt = 0;
+  int32_t start = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -220,7 +221,6 @@ int main(void)
     // } else {
     //   motorLPID.setTarget(0);
     // }
-    int32_t tmp = 0;
     if(updatePIDflag)
     {
       updatePIDflag = false;
@@ -229,8 +229,10 @@ int main(void)
       // } else {
       //   motorTarget = turnPID.update(imuSum);
       // }
-      speed = mp.update(1);
-      start_dt = HAL_GetTick();
+      dt = HAL_GetTick() - start;
+      speed = mp.update(dt);
+      //dist += speed * dt;
+      start = HAL_GetTick();
 
       lSpeed = motorLPID.update(diffL);
       rSpeed = motorRPID.update(diffR);
@@ -256,14 +258,9 @@ int main(void)
     // motorRPID.setTarget(motorTarget);
     motorLPID.setTarget(speed);
     motorRPID.setTarget(speed);
-    if(speed > 0)
-    {
-      motorR.setSpeed(rSpeed);
-      motorL.setSpeed(lSpeed);
-    } else {
-      motorR.setSpeed(0);
-      motorL.setSpeed(0);
-    }
+    motorR.setSpeed(rSpeed);
+    motorL.setSpeed(lSpeed);
+
 
 
     //sprintf(gzbuf, "Speed Change: right:%d, left: %d\r\n", (int)(1000*rSpeed),(int)(1000*lSpeed));
