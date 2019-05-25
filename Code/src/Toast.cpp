@@ -53,6 +53,7 @@
 #include "IRSensor.hpp"
 #include "Motor.hpp"
 #include "PID.hpp"
+#include "MotionProfile.hpp"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -78,7 +79,7 @@ volatile int timeCnt = 0;
 volatile float error = 0;
 const int32_t CNT_PER_REV = 5760;
 const int32_t TARGET_SPEED = 80;
-const int32_t CELL = 8000;//8920;
+const int32_t CELL = 6150;
 #define LOGLEN 1000
 /* USER CODE END PV */
 
@@ -184,40 +185,42 @@ int main(void)
   PID turnPID(0.035,0.0001,0.01); // .025
   const int gyroTarget = 3675;
   //turnPID.setTarget(gyroTarget); // turn left GYRO
-  
+  const float vCruise = 10.0;
+  const float maxAccel = 10.0/500; // (10 tick/ms) / 500ms
+  MotionProfile mp(maxAccel, vCruise);
+  mp.generate(CELL);
 
   HAL_Delay(2000);
   int imuSum = 0; 
-
+  int32_t ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4;
+  int32_t lSpeed, rSpeed, motorTarget;
+  char gzbuf[128];
+  float speed = 0;
+  int32_t start_dt = 0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
-    char gzbuf[128];
-    int32_t ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4;
-
-    int32_t lSpeed, rSpeed, motorTarget;
-    if(EncR< 4*CELL) {
+    // if(EncR< 4*CELL) {
       
-      motorRPID.setTarget(20);
-    } else if(EncR > 4*CELL + 50) {
+    //   motorRPID.setTarget(20);
+    // } else if(EncR > 4*CELL + 50) {
       
-      motorRPID.setTarget(-5);
-    } else {
-      motorRPID.setTarget(0);
-    }
+    //   motorRPID.setTarget(-5);
+    // } else {
+    //   motorRPID.setTarget(0);
+    // }
     
-    if(EncL < 4*CELL) {
-      motorLPID.setTarget(20);
-    } else if(EncL > 4*CELL  + 50) {
-      motorLPID.setTarget(-5);
-    } else {
-      motorLPID.setTarget(0);
-    }
-
+    // if(EncL < 4*CELL) {
+    //   motorLPID.setTarget(20);
+    // } else if(EncL > 4*CELL  + 50) {
+    //   motorLPID.setTarget(-5);
+    // } else {
+    //   motorLPID.setTarget(0);
+    // }
+    int32_t tmp = 0;
     if(updatePIDflag)
     {
       updatePIDflag = false;
@@ -226,6 +229,9 @@ int main(void)
       // } else {
       //   motorTarget = turnPID.update(imuSum);
       // }
+      speed = mp.update(1);
+      start_dt = HAL_GetTick();
+
       lSpeed = motorLPID.update(diffL);
       rSpeed = motorRPID.update(diffR);
     }
@@ -246,22 +252,30 @@ int main(void)
 
 
 
-    motorLPID.setTarget(-motorTarget);
-    motorRPID.setTarget(motorTarget);
-    
-    motorR.setSpeed(rSpeed);
-    motorL.setSpeed(lSpeed);
+    // motorLPID.setTarget(-motorTarget);
+    // motorRPID.setTarget(motorTarget);
+    motorLPID.setTarget(speed);
+    motorRPID.setTarget(speed);
+    if(speed > 0)
+    {
+      motorR.setSpeed(rSpeed);
+      motorL.setSpeed(lSpeed);
+    } else {
+      motorR.setSpeed(0);
+      motorL.setSpeed(0);
+    }
+
 
     //sprintf(gzbuf, "Speed Change: right:%d, left: %d\r\n", (int)(1000*rSpeed),(int)(1000*lSpeed));
     //print((uint8_t*)gzbuf);
-    //sprintf(gzbuf, "DiffR: %d, DiffL: %d \r\n", diffR, diffL);
+    //sprintf(gzbuf, "dt: %d, DiffR: %d, DiffL: %d \r\n", tmp, diffR, diffL);
     //sprintf(gzbuf, "Encoder L:%d,\t EncoderR:%d\r\n", EncL, EncR);
     
     //sprintf(gzbuf, "Gyro: %d, DiffL: %d \r\n", imu.read());
     //print((uint8_t*)gzbuf);
-    int32_t reading = imu.read();
-    imuSum += reading;
-    sprintf(gzbuf, "IMU: %d, SUM: %d\r\n", reading, imuSum);
+    // int32_t reading = imu.read();
+    // imuSum += reading;
+    sprintf(gzbuf, "MP: %d, %d, %d, %d\r\n", (int)speed, (int)mp.m_tAccel, (int)mp.m_tCruise, (int)(mp.m_totalTime));
     print((uint8_t*)gzbuf);
 
     // if(complete)
@@ -279,7 +293,8 @@ int main(void)
     //     print((uint8_t*)msg);
     //   }
     // }
-    // HAL_Delay(10);
+    HAL_Delay(1);
+
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
