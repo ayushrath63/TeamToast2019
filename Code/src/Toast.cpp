@@ -140,7 +140,7 @@ int main(void)
   IRSensor IRLeft(&hadc1, ADC_CHANNEL_8, IR_L_GPIO_Port, IR_L_Pin);
   IRSensor IRTopLeft(&hadc1, ADC_CHANNEL_7, IR_FL_GPIO_Port, IR_FL_Pin);
   IRSensor IRTopRight(&hadc1, ADC_CHANNEL_5, IR_FR_GPIO_Port, IR_FR_Pin);
-  IRSensor IRRight(&hadc1, ADC_CHANNEL_14, IR_R_GPIO_Port, IR_R_Pin);
+  IRSensor IRRight(&hadc1, ADC_CHANNEL_14, IR_R_GPIO_Port, IR_R_Pin, true);
 
   //PID turnPID(0.035,0.0001,0.01); // .025
   //const int gyroTarget = 3675;
@@ -155,7 +155,7 @@ int main(void)
 
   HAL_Delay(2000);
   int32_t imuSum = 0; 
-  int32_t ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4;
+  int32_t irL, irR, irF, irF_Bad;
   int32_t pwmL, pwmR, motorTarget;
   char gzbuf[128];
   float speedTarget = 0;
@@ -170,7 +170,7 @@ int main(void)
     commands[i] = DriveCommand::FORWARD;
   }
 
-  sprintf(gzbuf, "STARTING");
+  sprintf(gzbuf, "STARTING\r\n");
   print((uint8_t*)gzbuf);
   /* USER CODE END 2 */
 
@@ -181,9 +181,15 @@ int main(void)
     //Check for new Command
     if(mp.isDone())
     {
+      //Poll IR
+      irF = IRLeft.read();
+      irF_Bad = IRRight.read();
+      irL = IRTopLeft.read();
+      irR = IRTopRight.read();
       motorLPID.resetError();
       motorRPID.resetError();
       encAnglePID.resetError();
+
       if(cellCount < nCommands)
       {
         cellCount++;
@@ -191,18 +197,15 @@ int main(void)
         switch(commands[cellCount])
         {
           case DriveCommand::FORWARD:
-          
             mp.generate(CELL);
             break;
           default:
             break;
         }
-
-      sprintf(gzbuf, "Traversed: %d, Angle: %d, Command: %d\r\n", cellCount, EncAngle, (int)commands[cellCount]);
-      print((uint8_t*)gzbuf);
-        
       }
+      start = HAL_GetTick();
     }
+
 
     if(updatePIDflag)
     {
@@ -224,6 +227,9 @@ int main(void)
 
     motorR.setSpeed(pwmR);
     motorL.setSpeed(pwmL);
+
+    sprintf(gzbuf,"FL: %d, L:%d, R:%d, FR:%d\r\n", irF, irL, irR, irF_Bad);
+    printf((uint8*)gzbuf);
 
     HAL_Delay(1);
 

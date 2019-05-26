@@ -13,8 +13,7 @@ uint32_t IRSensor::read(){
     uint32_t ADC_VAL;
     if(!m_invert) HAL_GPIO_WritePin(m_GPIOx, m_GPIO_Pin, GPIO_PIN_SET);
     else HAL_GPIO_WritePin(m_GPIOx, m_GPIO_Pin, GPIO_PIN_RESET);
-    ADC_VAL = readADC(m_adcHandle,m_channel, 500);
-    HAL_Delay(1000);
+    ADC_VAL = readADC(m_adcHandle,m_channel, ADC_SAMPLETIME_84CYCLES);
     if(!m_invert) HAL_GPIO_WritePin(m_GPIOx, m_GPIO_Pin, GPIO_PIN_RESET);
     else HAL_GPIO_WritePin(m_GPIOx, m_GPIO_Pin, GPIO_PIN_SET);
     return ADC_VAL;
