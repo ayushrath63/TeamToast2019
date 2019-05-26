@@ -56,7 +56,6 @@
 #include "MotionProfile.hpp"
 #include "Drive.hpp"
 #include <cmath>
-#include <vector>
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -176,7 +175,7 @@ int main(void)
 
   HAL_Delay(2000);
   int32_t imuSum = 0; 
-  int32_t irL, irR, irF, irF_Bad;
+  int32_t irL, irR, irF;
   int32_t pwmL, pwmR, motorTarget;
   char gzbuf[128];
   float speedTarget = 0;
@@ -206,7 +205,7 @@ int main(void)
       // irR = IRTopRight.read();
       // sprintf(gzbuf,"FL: %d, L: %d, R: %d, FR: %d\r\n", irF, irL, irR, irF_Bad);
       // print((uint8_t*)gzbuf);
-      IR_read();
+      IRSensor_readAll();
       motorLPID.resetError();
       motorRPID.resetError();
       encAnglePID.resetError();
