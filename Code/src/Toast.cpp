@@ -138,9 +138,9 @@ int main(void)
   //Initialize IR Sensors
   HAL_ADC_Start(&hadc1);
   IRSensor IRLeft(&hadc1, ADC_CHANNEL_8, IR_L_GPIO_Port, IR_L_Pin);
-  IRSensor IRTopLeft(&hadc1, ADC_CHANNEL_7, IR_FL_GPIO_Port, IR_FL_Pin);
-  IRSensor IRTopRight(&hadc1, ADC_CHANNEL_5, IR_FR_GPIO_Port, IR_FR_Pin);
-  IRSensor IRRight(&hadc1, ADC_CHANNEL_14, IR_R_GPIO_Port, IR_R_Pin, true);
+  IRSensor IRTopLeft(&hadc1, ADC_CHANNEL_14, IR_FL_GPIO_Port, IR_FL_Pin);
+  IRSensor IRTopRight(&hadc1, ADC_CHANNEL_7, IR_FR_GPIO_Port, IR_FR_Pin);
+  IRSensor IRRight(&hadc1, ADC_CHANNEL_5, IR_R_GPIO_Port, IR_R_Pin, true);
 
   //PID turnPID(0.035,0.0001,0.01); // .025
   //const int gyroTarget = 3675;
@@ -183,10 +183,10 @@ int main(void)
     {
       //Poll IR
       irF = IRLeft.read();
-      irF_Bad = IRRight.read();
+      irF_Bad = 0;///IRRight.read();
       irL = IRTopLeft.read();
       irR = IRTopRight.read();
-      sprintf(gzbuf,"FL: %d, L:%d, R:%d, FR:%d\r\n", irF, irL, irR, irF_Bad);
+      sprintf(gzbuf,"FL: %d, L: %d, R: %d, FR: %d\r\n", irF, irL, irR, irF_Bad);
       print((uint8_t*)gzbuf);
 
       motorLPID.resetError();
@@ -228,8 +228,10 @@ int main(void)
       start = HAL_GetTick();
     }
 
-    motorR.setSpeed(pwmR);
-    motorL.setSpeed(pwmL);
+    // motorR.setSpeed(pwmR);
+    // motorL.setSpeed(pwmL);
+    motorR.setSpeed(0);
+    motorL.setSpeed(0);
 
     HAL_Delay(1);
 

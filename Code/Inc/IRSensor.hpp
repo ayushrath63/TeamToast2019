@@ -6,10 +6,13 @@
 #include "stm32f4xx_hal.h"
 #include "gpio.h"
 
-constexpr float WALL_R = 3830;
-constexpr float WALL_L = 3815;
-constexpr float WALL_F = 2750;
-constexpr float WALL_2F = 1850;
+constexpr float WALL_R = 3820;
+constexpr float WALL_L = 3890;
+constexpr float WALL_F = 3237;
+constexpr float WALL_2F = 2165;
+
+// no wall F= 1960
+
 
 class IRSensor {
 
