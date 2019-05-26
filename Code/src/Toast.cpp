@@ -186,6 +186,9 @@ int main(void)
       irF_Bad = IRRight.read();
       irL = IRTopLeft.read();
       irR = IRTopRight.read();
+      sprintf(gzbuf,"FL: %d, L:%d, R:%d, FR:%d\r\n", irF, irL, irR, irF_Bad);
+      print((uint8_t*)gzbuf);
+
       motorLPID.resetError();
       motorRPID.resetError();
       encAnglePID.resetError();
@@ -227,9 +230,6 @@ int main(void)
 
     motorR.setSpeed(pwmR);
     motorL.setSpeed(pwmL);
-
-    sprintf(gzbuf,"FL: %d, L:%d, R:%d, FR:%d\r\n", irF, irL, irR, irF_Bad);
-    printf((uint8*)gzbuf);
 
     HAL_Delay(1);
 
