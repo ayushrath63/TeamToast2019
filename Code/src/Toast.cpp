@@ -55,6 +55,7 @@
 #include "PID.hpp"
 #include "MotionProfile.hpp"
 #include "Drive.hpp"
+#include <cmath>
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -72,13 +73,53 @@ volatile int EncAngle;
 volatile bool updatePIDflag = false;
 
 constexpr int32_t CNT_PER_REV = 5760;
-constexpr int32_t CELL = 13750;//8920;
+constexpr int32_t CELL = 15500;//8920;
 constexpr float V_CRUISE = 10.0; // tick/ms
 constexpr float MAX_ACCEL = 0.02; // tick/ms/ms
 constexpr float V_TURN = 10.0;
-int32_t nCommands = 15;
+int32_t nCommands = 31;
 
-DriveCommand commands[15];
+DriveCommand commands[31] = 
+{
+  DriveCommand::FORWARD,
+  
+  DriveCommand::FORWARD,
+  DriveCommand::TURNRIGHT,
+  DriveCommand::TURNLEFT,
+  DriveCommand::TURNLEFT,
+  DriveCommand::TURNRIGHT,
+
+  DriveCommand::FORWARD,  
+  DriveCommand::TURNLEFT,
+  DriveCommand::TURNRIGHT,
+  DriveCommand::TURNRIGHT,
+  DriveCommand::TURNLEFT,
+
+  DriveCommand::FORWARD,
+  DriveCommand::TURNRIGHT,
+  DriveCommand::TURNLEFT,
+  DriveCommand::TURNLEFT,
+  DriveCommand::TURNRIGHT,
+
+  DriveCommand::FORWARD,  
+  DriveCommand::TURNLEFT,
+  DriveCommand::TURNRIGHT,
+  DriveCommand::TURNRIGHT,
+  DriveCommand::TURNLEFT,
+
+  DriveCommand::FORWARD,
+  DriveCommand::TURNRIGHT,
+  DriveCommand::TURNLEFT,
+  DriveCommand::TURNLEFT,
+  DriveCommand::TURNRIGHT,
+
+  DriveCommand::FORWARD,  
+  DriveCommand::TURNLEFT,
+  DriveCommand::TURNRIGHT,
+  DriveCommand::TURNRIGHT,
+  DriveCommand::TURNLEFT,
+
+};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -151,7 +192,7 @@ int main(void)
   
   PID motorLPID(20.0,0.35,0.5);
   PID motorRPID(20.0,0.35,0.5);
-  PID encAnglePID(0.01,0.0,0.0);
+  PID encAnglePID(0.02,0.0,0.0);
 
   HAL_Delay(2000);
   int32_t imuSum = 0; 
@@ -160,15 +201,10 @@ int main(void)
   char gzbuf[128];
   float speedTarget = 0;
   float speedW = 0;
+  float angleTarget = 0;
   int32_t dt = 0;
   int32_t start = HAL_GetTick();
   int32_t cellCount = 0;
-
-
-  for(int32_t i = 0; i < nCommands; ++i)
-  {
-    commands[i] = DriveCommand::FORWARD;
-  }
 
   sprintf(gzbuf, "STARTING\r\n");
   print((uint8_t*)gzbuf);
@@ -178,29 +214,46 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    DriveCommand next = commands[cellCount];
     //Check for new Command
     if(mp.isDone())
     {
+
       //Poll IR
       irF = IRLeft.read();
       irF_Bad = IRRight.read();
       irL = IRTopLeft.read();
       irR = IRTopRight.read();
-      sprintf(gzbuf,"FL: %d, L:%d, R:%d, FR:%d\r\n", irF, irL, irR, irF_Bad);
-      print((uint8_t*)gzbuf);
+      // sprintf(gzbuf,"F: %d, L: %d, R: %d, SHIT: %d\r\n", irF, irL, irR, irF_Bad);
+      // print((uint8_t*)gzbuf);
 
       motorLPID.resetError();
       motorRPID.resetError();
       encAnglePID.resetError();
-
+      motorR.setSpeed(0);
+      motorL.setSpeed(0);
+      //imuSum = 0;
       if(cellCount < nCommands)
       {
         cellCount++;
+        TIM2->CNT = 0;
+        TIM5->CNT = 0;
+        EncAngle = 0;
+        EncAvg = 0;
         mp.resetAll();
-        switch(commands[cellCount])
+        switch(next)
         {
           case DriveCommand::FORWARD:
             mp.generate(CELL);
+            angleTarget = 0.0;
+            break;
+          case DriveCommand::TURNLEFT:
+            mp.generate(CELL); 
+            angleTarget = 5250.0;
+            break;
+          case DriveCommand::TURNRIGHT:
+            mp.generate(CELL); 
+            angleTarget = -5250.0;
             break;
           default:
             break;
@@ -209,16 +262,22 @@ int main(void)
       start = HAL_GetTick();
     }
 
-
+  float encAnglePIDResult;
     if(updatePIDflag)
     {
       dt = HAL_GetTick() - start;
       
       //Get new speed cap from motion profile;
-      speedTarget = mp.update(dt);
+      float update = mp.update(dt);
+      speedTarget = 0;
+      if(next == DriveCommand::FORWARD)
+      {
+        speedTarget = update;
+      }
 
-      encAnglePID.setTarget(0.0);
-      speedW = encAnglePID.update(EncAngle);
+      encAnglePID.setTarget(angleTarget);
+      encAnglePIDResult = encAnglePID.update(EncAngle);
+      speedW = abs(encAnglePIDResult) < 10 ? encAnglePIDResult : encAnglePIDResult / abs(encAnglePIDResult) *10;
       motorLPID.setTarget(speedTarget - speedW);
       motorRPID.setTarget(speedTarget + speedW);
       pwmL = motorLPID.update(diffL);
@@ -228,9 +287,14 @@ int main(void)
       start = HAL_GetTick();
     }
 
+      sprintf(gzbuf,"Command: %d, Time: %d / %d\r\n", (int)next, (int)mp.m_currTime, (int)mp.m_totalTime);
+      print((uint8_t*)gzbuf);
+
+
     motorR.setSpeed(pwmR);
     motorL.setSpeed(pwmL);
 
+    imuSum += imu.read();
     HAL_Delay(1);
 
   /* USER CODE END WHILE */
