@@ -9,11 +9,11 @@ class Motor {
 
 public: 
 	void setSpeed(int speed);
-	Motor(TIM_HandleTypeDef timeHandle, bool flipped = false);
+	Motor(TIM_HandleTypeDef* timeHandle, bool flipped = false);
 
 
 private:
-	TIM_HandleTypeDef m_timeHandle;
+	TIM_HandleTypeDef* m_timeHandle;
 	bool m_flipped;
 };
 

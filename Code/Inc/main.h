@@ -110,7 +110,14 @@
 /* #define USE_FULL_ASSERT    1U */
 
 /* USER CODE BEGIN Private defines */
-
+volatile extern int EncL;
+volatile extern int EncR;
+volatile extern int prevEncL;
+volatile extern int prevEncR;
+volatile extern int diffL;
+volatile extern int diffR;
+volatile extern int EncAvg;
+volatile extern int EncAngle;
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

@@ -1,7 +1,16 @@
 
-// #ifndef __DRIVE_H__
-// #define __DRIVE_H__
+#ifndef __DRIVE_H__
+#define __DRIVE_H__
 
+enum class DriveCommand
+{
+    FORWARD,
+    BACKWARD,
+    TURNLEFT,
+    TURNRIGHT,
+    TURN180,
+    NONE
+};
 
 // #include "gpio.h"
 // #include "spi.h"
@@ -22,4 +31,4 @@
 // 	PID* m_motorRPID;
 // };
 
-// #endif /* __DRIVE_H__ */
+#endif /* __DRIVE_H__ */

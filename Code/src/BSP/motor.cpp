@@ -1,8 +1,9 @@
 #include "Motor.hpp"
+#include "tim.h"
 
-Motor::Motor(TIM_HandleTypeDef timeHandle, bool flipped)
+Motor::Motor(TIM_HandleTypeDef* timeHandle, bool flipped)
  : m_timeHandle(timeHandle), m_flipped(flipped) {
-	HAL_TIM_Base_Start(&m_timeHandle);
+	HAL_TIM_Base_Start(m_timeHandle);
 }
 
 

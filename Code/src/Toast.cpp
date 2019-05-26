@@ -54,33 +54,31 @@
 #include "Motor.hpp"
 #include "PID.hpp"
 #include "MotionProfile.hpp"
+#include "Drive.hpp"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-volatile int32_t EncL;
-volatile int32_t EncR;
-volatile int32_t prevEncL;
-volatile int32_t prevEncR;
-volatile int32_t diffL;
-volatile int32_t diffR;
-
+volatile int EncL;
+volatile int EncR;
+volatile int prevEncL;
+volatile int prevEncR;
+volatile int diffL;
+volatile int diffR;
+volatile int EncAvg;
+volatile int EncAngle;
 volatile bool updatePIDflag = false;
 
-volatile int32_t datalog[2048];
-volatile int32_t* logPtr = datalog;
-volatile int32_t datalog2[2048];
-volatile int32_t* logPtr2 = datalog2;
-volatile bool complete = false;
+constexpr int32_t CNT_PER_REV = 5760;
+constexpr int32_t CELL = 13750;//8920;
+constexpr float V_CRUISE = 10.0; // tick/ms
+constexpr float MAX_ACCEL = 0.02; // tick/ms/ms
+constexpr float V_TURN = 10.0;
+int32_t nCommands = 15;
 
-volatile int timeCnt = 0;
-volatile float error = 0;
-const int32_t CNT_PER_REV = 5760;
-const int32_t TARGET_SPEED = 80;
-const int32_t CELL = 6150;
-#define LOGLEN 1000
+DriveCommand commands[15];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -88,33 +86,11 @@ void SystemClock_Config(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
+void initEncoders();
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-void HAL_SYSTICK_Callback(void)
-{
-/*  if(!complete)
-  {
-    */
-    prevEncL = EncL;
-    prevEncR = EncR;
-    EncL = -1*TIM2->CNT;
-    EncR = TIM5->CNT;
-    diffL = EncL - prevEncL;
-    diffR = EncR - prevEncR;
-    /**logPtr = EncL;
-    *logPtr2 = EncR;
-    logPtr++;
-    logPtr2++;
-  }*/
-  // if(!complete && (HAL_GetTick() - timeCnt > 5000))
-  // {
-  //   timeCnt = HAL_GetTick();
-  //   complete = true; 
-  // }
-  updatePIDflag = true;
-}
+void HAL_SYSTICK_Callback(void);
 /* USER CODE END 0 */
 
 /**
@@ -155,141 +131,100 @@ int main(void)
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
-  //Undocumented stuff, needed to start encoder
-  HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1 | TIM_CHANNEL_2);
-  TIM2->EGR=TIM_EGR_UG;
-  TIM2->CR1=TIM_CR1_CEN;
-
-  //Undocumented stuff, needed to start encoder
-  HAL_TIM_Encoder_Start(&htim5,  TIM_CHANNEL_1 | TIM_CHANNEL_2);
-  TIM5->EGR=TIM_EGR_UG;
-  TIM5->CR1=TIM_CR1_CEN;
-
-  
-
-  HAL_ADC_Start(&hadc1);
-
+  initEncoders();
   IMU imu(hspi2);
   imu.init();
 
-  Motor motorL(htim3);
-  Motor motorR(htim4, true);
-
+  //Initialize IR Sensors
+  HAL_ADC_Start(&hadc1);
   IRSensor IRLeft(&hadc1, ADC_CHANNEL_8, IR_L_GPIO_Port, IR_L_Pin);
   IRSensor IRTopLeft(&hadc1, ADC_CHANNEL_7, IR_FL_GPIO_Port, IR_FL_Pin);
   IRSensor IRTopRight(&hadc1, ADC_CHANNEL_5, IR_FR_GPIO_Port, IR_FR_Pin);
   IRSensor IRRight(&hadc1, ADC_CHANNEL_14, IR_R_GPIO_Port, IR_R_Pin);
 
+  //PID turnPID(0.035,0.0001,0.01); // .025
+  //const int gyroTarget = 3675;
+  
+  Motor motorL(&htim3);
+  Motor motorR(&htim4, true);
+  MotionProfile mp(MAX_ACCEL, V_CRUISE);
+  
   PID motorLPID(20.0,0.35,0.5);
   PID motorRPID(20.0,0.35,0.5);
-  PID turnPID(0.035,0.0001,0.01); // .025
-  const int gyroTarget = 3675;
-  //turnPID.setTarget(gyroTarget); // turn left GYRO
-  const float vCruise = 10.0;
-  const float maxAccel = 10.0/500; // (10 tick/ms) / 500ms
-  MotionProfile mp(maxAccel, vCruise);
-  mp.generate(CELL);
+  PID encAnglePID(0.01,0.0,0.0);
 
   HAL_Delay(2000);
-  int imuSum = 0; 
+  int32_t imuSum = 0; 
   int32_t ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4;
-  int32_t lSpeed, rSpeed, motorTarget;
+  int32_t pwmL, pwmR, motorTarget;
   char gzbuf[128];
-  float speed = 0;
+  float speedTarget = 0;
+  float speedW = 0;
   int32_t dt = 0;
-  int32_t start = 0;
+  int32_t start = HAL_GetTick();
+  int32_t cellCount = 0;
+
+
+  for(int32_t i = 0; i < nCommands; ++i)
+  {
+    commands[i] = DriveCommand::FORWARD;
+  }
+
+  sprintf(gzbuf, "STARTING");
+  print((uint8_t*)gzbuf);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    // if(EncR< 4*CELL) {
-      
-    //   motorRPID.setTarget(20);
-    // } else if(EncR > 4*CELL + 50) {
-      
-    //   motorRPID.setTarget(-5);
-    // } else {
-    //   motorRPID.setTarget(0);
-    // }
-    
-    // if(EncL < 4*CELL) {
-    //   motorLPID.setTarget(20);
-    // } else if(EncL > 4*CELL  + 50) {
-    //   motorLPID.setTarget(-5);
-    // } else {
-    //   motorLPID.setTarget(0);
-    // }
-    if(updatePIDflag)
+    //Check for new Command
+    if(mp.isDone())
     {
-      updatePIDflag = false;
-      // if(gyroTarget - imuSum > 500){
-      //   motorTarget = 10; 
-      // } else {
-      //   motorTarget = turnPID.update(imuSum);
-      // }
-      dt = HAL_GetTick() - start;
-      speed = mp.update(dt);
-      //dist += speed * dt;
-      start = HAL_GetTick();
+      motorLPID.resetError();
+      motorRPID.resetError();
+      encAnglePID.resetError();
+      if(cellCount < nCommands)
+      {
+        cellCount++;
+        mp.resetAll();
+        switch(commands[cellCount])
+        {
+          case DriveCommand::FORWARD:
+          
+            mp.generate(CELL);
+            break;
+          default:
+            break;
+        }
 
-      lSpeed = motorLPID.update(diffL);
-      rSpeed = motorRPID.update(diffR);
+      sprintf(gzbuf, "Traversed: %d, Angle: %d, Command: %d\r\n", cellCount, EncAngle, (int)commands[cellCount]);
+      print((uint8_t*)gzbuf);
+        
+      }
     }
 
-    // if(complete)
-    // {
-    //   complete = false;
-    //   motorLPID.resetError();
-    //   motorRPID.resetError();
-    //   turnPID.resetError();
-    //   imuSum = 0;
-    // }
-    //sprintf(gzbuf, "%ld\r\n", ADC_VAL3);
-    //sprintf(gzbuf, "%ld, %ld, %ld, %ld\r\n", ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4);
-    //print((uint8_t*)gzbuf);
+    if(updatePIDflag)
+    {
+      dt = HAL_GetTick() - start;
+      
+      //Get new speed cap from motion profile;
+      speedTarget = mp.update(dt);
 
-    // Test Motors
+      encAnglePID.setTarget(0.0);
+      speedW = encAnglePID.update(EncAngle);
+      motorLPID.setTarget(speedTarget - speedW);
+      motorRPID.setTarget(speedTarget + speedW);
+      pwmL = motorLPID.update(diffL);
+      pwmR = motorRPID.update(diffR);
 
+      updatePIDflag = false;
+      start = HAL_GetTick();
+    }
 
+    motorR.setSpeed(pwmR);
+    motorL.setSpeed(pwmL);
 
-    // motorLPID.setTarget(-motorTarget);
-    // motorRPID.setTarget(motorTarget);
-    motorLPID.setTarget(speed);
-    motorRPID.setTarget(speed);
-    motorR.setSpeed(rSpeed);
-    motorL.setSpeed(lSpeed);
-
-
-
-    //sprintf(gzbuf, "Speed Change: right:%d, left: %d\r\n", (int)(1000*rSpeed),(int)(1000*lSpeed));
-    //print((uint8_t*)gzbuf);
-    //sprintf(gzbuf, "dt: %d, DiffR: %d, DiffL: %d \r\n", tmp, diffR, diffL);
-    //sprintf(gzbuf, "Encoder L:%d,\t EncoderR:%d\r\n", EncL, EncR);
-    
-    //sprintf(gzbuf, "Gyro: %d, DiffL: %d \r\n", imu.read());
-    //print((uint8_t*)gzbuf);
-    // int32_t reading = imu.read();
-    // imuSum += reading;
-    //sprintf(gzbuf, "MP: %d, %d, %d, %d\r\n", (int)speed, (int)mp.m_tAccel, (int)mp.m_tCruise, (int)(mp.m_totalTime));
-    print((uint8_t*)gzbuf);
-
-    // if(complete)
-    // {
-    //   motorR.setSpeed(0);
-    //   motorL.setSpeed(0);
-    //   if(!HAL_GPIO_ReadPin(Btn1_GPIO_Port, Btn1_Pin))
-    //   {
-    //     char msg[10] = "\r\ndone\r\n";
-    //     for(int i = 0; i < LOGLEN; ++i)
-    //     {
-    //       sprintf(gzbuf, "%d,\t%d\r\n", datalog2[i], datalog[i]);
-    //       print((uint8_t*)gzbuf);
-    //     }
-    //     print((uint8_t*)msg);
-    //   }
-    // }
     HAL_Delay(1);
 
   /* USER CODE END WHILE */
@@ -360,7 +295,30 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void initEncoders()
+{
+  HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1 | TIM_CHANNEL_2);
+  TIM2->EGR=TIM_EGR_UG;
+  TIM2->CR1=TIM_CR1_CEN;
+  HAL_TIM_Encoder_Start(&htim5,  TIM_CHANNEL_1 | TIM_CHANNEL_2);
+  TIM5->EGR=TIM_EGR_UG;
+  TIM5->CR1=TIM_CR1_CEN;
+}
 
+void HAL_SYSTICK_Callback(void)
+{
+
+  prevEncL = EncL;
+  prevEncR = EncR;
+  EncL = -1*TIM2->CNT;
+  EncR = TIM5->CNT;
+  EncAvg = (EncL + EncR) >> 2;
+  EncAngle = (EncR - EncL);
+  diffL = EncL - prevEncL;
+  diffR = EncR - prevEncR;
+
+  updatePIDflag = true;
+}
 /* USER CODE END 4 */
 
 /**
