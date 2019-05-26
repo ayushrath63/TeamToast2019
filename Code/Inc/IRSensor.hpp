@@ -6,9 +6,9 @@
 #include "stm32f4xx_hal.h"
 #include "gpio.h"
 
-constexpr float WALL_R = 3820;
-constexpr float WALL_L = 3890;
-constexpr float WALL_F = 3237;
+constexpr float WALL_R = 3092; // 2864 - 3269
+constexpr float WALL_L = 3735; // 3600 - 3834
+constexpr float WALL_F = 2710;  // 2600 - 3000
 constexpr float WALL_2F = 2165;
 
 // no wall F= 1960
