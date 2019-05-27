@@ -2,6 +2,10 @@
 #ifndef __DRIVE_H__
 #define __DRIVE_H__
 
+#include "IRSensor.hpp"
+#include "Encoder.hpp"
+#include "PID.hpp"
+
 enum class DriveCommand
 {
     FORWARD,
@@ -12,23 +16,15 @@ enum class DriveCommand
     NONE
 };
 
-// #include "gpio.h"
-// #include "spi.h"
-// #include "IMU.hpp"
-// #include "motor.hpp"
-// class Drive
-// {
-// public:
-//     Drive(IMU* imu, Motor* motorL, Motor* motorR, PID* motorLPID,PID* motorRPID);
-//     void turnRight();
-//     void turnLeft();
-// private:
-// 	IMU* m_imu; 
-// 	Motor* m_motorL;
-// 	Motor* m_motorR;
-// 	int m_imuSum; 
-// 	PID* m_motorLPID;
-// 	PID* m_motorRPID;
-// };
+extern int pwmL, pwmR;
+namespace Command {
+	extern DriveCommand cur_command, next_command; 
+	extern bool complete; 
+	void setNextCommand(); 
+};
 
+void goForward(); 
+void turnLeft();
+void turnRight();
+void turn180();
 #endif /* __DRIVE_H__ */

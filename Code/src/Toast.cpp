@@ -55,6 +55,7 @@
 #include "PID.hpp"
 #include "MotionProfile.hpp"
 #include "Drive.hpp"
+#include "Encoder.hpp"
 #include <cmath>
 /* USER CODE END Includes */
 
@@ -62,64 +63,33 @@
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-volatile int EncL;
-volatile int EncR;
-volatile int prevEncL;
-volatile int prevEncR;
-volatile int diffL;
-volatile int diffR;
-volatile int EncAvg;
-volatile int EncAngle;
+
 volatile bool updatePIDflag = false;
 
 constexpr int32_t CNT_PER_REV = 5760;
-constexpr int32_t CELL = 15500;//8920;
+//constexpr int32_t CELL = 15500;//8920;
 constexpr float V_CRUISE = 10.0; // tick/ms
 constexpr float MAX_ACCEL = 0.02; // tick/ms/ms
 constexpr float V_TURN = 10.0;
-int32_t nCommands = 31;
+int32_t nCommands = 8;
 
-DriveCommand commands[31] = 
+// Drive Command 
+// vector< DriveCommand > commands;
+// commands.push_back(FORWARD);
+DriveCommand commands[8] = 
 {
   DriveCommand::FORWARD,
-  
-  DriveCommand::FORWARD,
   DriveCommand::TURNRIGHT,
   DriveCommand::TURNLEFT,
   DriveCommand::TURNLEFT,
+  DriveCommand::TURNRIGHT, 
+  DriveCommand::TURNLEFT,
+  DriveCommand::TURNRIGHT,
   DriveCommand::TURNRIGHT,
 
-  DriveCommand::FORWARD,  
-  DriveCommand::TURNLEFT,
-  DriveCommand::TURNRIGHT,
-  DriveCommand::TURNRIGHT,
-  DriveCommand::TURNLEFT,
-
-  DriveCommand::FORWARD,
-  DriveCommand::TURNRIGHT,
-  DriveCommand::TURNLEFT,
-  DriveCommand::TURNLEFT,
-  DriveCommand::TURNRIGHT,
-
-  DriveCommand::FORWARD,  
-  DriveCommand::TURNLEFT,
-  DriveCommand::TURNRIGHT,
-  DriveCommand::TURNRIGHT,
-  DriveCommand::TURNLEFT,
-
-  DriveCommand::FORWARD,
-  DriveCommand::TURNRIGHT,
-  DriveCommand::TURNLEFT,
-  DriveCommand::TURNLEFT,
-  DriveCommand::TURNRIGHT,
-
-  DriveCommand::FORWARD,  
-  DriveCommand::TURNLEFT,
-  DriveCommand::TURNRIGHT,
-  DriveCommand::TURNRIGHT,
-  DriveCommand::TURNLEFT,
 
 };
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -127,7 +97,7 @@ void SystemClock_Config(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-void initEncoders();
+
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
@@ -178,10 +148,6 @@ int main(void)
 
   //Initialize IR Sensors
   HAL_ADC_Start(&hadc1);
-  IRSensor IRLeft(&hadc1, ADC_CHANNEL_8, IR_L_GPIO_Port, IR_L_Pin);
-  IRSensor IRTopLeft(&hadc1, ADC_CHANNEL_7, IR_FL_GPIO_Port, IR_FL_Pin);
-  IRSensor IRTopRight(&hadc1, ADC_CHANNEL_5, IR_FR_GPIO_Port, IR_FR_Pin);
-  IRSensor IRRight(&hadc1, ADC_CHANNEL_14, IR_R_GPIO_Port, IR_R_Pin, true);
 
   //PID turnPID(0.035,0.0001,0.01); // .025
   //const int gyroTarget = 3675;
@@ -190,14 +156,10 @@ int main(void)
   Motor motorR(&htim4, true);
   MotionProfile mp(MAX_ACCEL, V_CRUISE);
   
-  PID motorLPID(20.0,0.35,0.5);
-  PID motorRPID(20.0,0.35,0.5);
-  PID encAnglePID(0.02,0.0,0.0);
+
 
   HAL_Delay(2000);
   int32_t imuSum = 0; 
-  int32_t irL, irR, irF, irF_Bad;
-  int32_t pwmL, pwmR, motorTarget;
   char gzbuf[128];
   float speedTarget = 0;
   float speedW = 0;
@@ -212,96 +174,146 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    DriveCommand next = commands[cellCount];
-    //Check for new Command
-    if(mp.isDone())
-    {
 
-      //Poll IR
-      irF = IRLeft.read();
-      irF_Bad = IRRight.read();
-      irL = IRTopLeft.read();
-      irR = IRTopRight.read();
-      // sprintf(gzbuf,"F: %d, L: %d, R: %d, SHIT: %d\r\n", irF, irL, irR, irF_Bad);
-      // print((uint8_t*)gzbuf);
 
-      motorLPID.resetError();
-      motorRPID.resetError();
-      encAnglePID.resetError();
-      motorR.setSpeed(0);
-      motorL.setSpeed(0);
-      //imuSum = 0;
-      if(cellCount < nCommands)
-      {
-        cellCount++;
-        TIM2->CNT = 0;
-        TIM5->CNT = 0;
-        EncAngle = 0;
-        EncAvg = 0;
-        mp.resetAll();
-        switch(next)
-        {
-          case DriveCommand::FORWARD:
-            mp.generate(CELL);
-            angleTarget = 0.0;
-            break;
-          case DriveCommand::TURNLEFT:
-            mp.generate(CELL); 
-            angleTarget = 5250.0;
-            break;
-          case DriveCommand::TURNRIGHT:
-            mp.generate(CELL); 
-            angleTarget = -5250.0;
-            break;
-          default:
-            break;
-        }
-      }
-      start = HAL_GetTick();
-    }
-
-  float encAnglePIDResult;
-    if(updatePIDflag)
-    {
-      dt = HAL_GetTick() - start;
-      
-      //Get new speed cap from motion profile;
-      float update = mp.update(dt);
-      speedTarget = 0;
-      if(next == DriveCommand::FORWARD)
-      {
-        speedTarget = update;
-      }
-
-      encAnglePID.setTarget(angleTarget);
-      encAnglePIDResult = encAnglePID.update(EncAngle);
-      speedW = abs(encAnglePIDResult) < 10 ? encAnglePIDResult : encAnglePIDResult / abs(encAnglePIDResult) *10;
-      motorLPID.setTarget(speedTarget - speedW);
-      motorRPID.setTarget(speedTarget + speedW);
-      pwmL = motorLPID.update(diffL);
-      pwmR = motorRPID.update(diffR);
-
-      updatePIDflag = false;
-      start = HAL_GetTick();
-    }
-
-      sprintf(gzbuf,"Command: %d, Time: %d / %d\r\n", (int)next, (int)mp.m_currTime, (int)mp.m_totalTime);
+  while(1) {
+    if (Command::complete) {
+      sprintf(gzbuf,"Cur_Command: %d, Next: %d \r\n", (int)Command::cur_command, (int)Command::next_command);
       print((uint8_t*)gzbuf);
 
-
+      motorR.setSpeed(0);
+      motorL.setSpeed(0);
+      //Adjust 
+      resetEncoder();
+      Command::complete = false;
+      HAL_Delay(2000);
+      IRSensor_readAll();
+      if (Command::next_command == DriveCommand::NONE) {
+        Command::setNextCommand(); // set the current command too 
+      } else {
+        Command::cur_command = Command::next_command;
+        Command::next_command = DriveCommand::NONE;
+      }
+    } else {
+      //sprintf(gzbuf,"pwmL: %d, pwmR: %d \r\n", (int)(pwmL*1000), (int)(pwmR*1000));
+      //print((uint8_t*)gzbuf);
+      switch(Command::cur_command) {
+        case DriveCommand::FORWARD:
+          goForward();
+          break;
+        case DriveCommand::TURNLEFT:
+          turnLeft();
+          break;
+        case DriveCommand::TURNRIGHT:
+          turnRight();
+          break;
+        case DriveCommand::TURN180:
+          turn180();
+          break;
+        default:
+          goForward();
+      }
+      
+    }
+    // turn180();
+     // sprintf(gzbuf,"EncoderL: %d, EncoderR: %d \r\n", EncL, EncR);
+     // print((uint8_t*)gzbuf);
+    HAL_Delay(1);
     motorR.setSpeed(pwmR);
     motorL.setSpeed(pwmL);
-
-    imuSum += imu.read();
-    HAL_Delay(1);
-
-  /* USER CODE END WHILE */
-
-  /* USER CODE BEGIN 3 */
-
   }
+  // while (1)
+  // {
+  //   DriveCommand next = commands[cellCount];
+  //   //Check for new Command
+  //   if(mp.isDone())
+  //   {
+
+  //     //Poll IR
+  //     // irF = IRLeft.read();
+  //     // irF_Bad = 0;///IRRight.read();
+  //     // irL = IRTopLeft.read();
+  //     // irR = IRTopRight.read();
+  //     // sprintf(gzbuf,"FL: %d, L: %d, R: %d, FR: %d\r\n", irF, irL, irR, irF_Bad);
+  //     // print((uint8_t*)gzbuf);
+  //     IRSensor_readAll();
+  //     motorLPID.resetError();
+  //     motorRPID.resetError();
+  //     encAnglePID.resetError();
+  //     motorR.setSpeed(0);
+  //     motorL.setSpeed(0);
+  //     //imuSum = 0;
+  //     if(cellCount < nCommands)
+  //     {
+  //       cellCount++;
+  //       TIM2->CNT = 0;
+  //       TIM5->CNT = 0;
+  //       EncAngle = 0;
+  //       EncAvg = 0;
+  //       mp.resetAll();
+  //       switch(next)
+  //       {
+  //         case DriveCommand::FORWARD:
+  //           mp.generate(CELL);
+  //           angleTarget = 0.0;
+  //           break;
+  //         case DriveCommand::TURNLEFT:
+  //           mp.generate(CELL); 
+  //           angleTarget = 5250.0;
+  //           break;
+  //         case DriveCommand::TURNRIGHT:
+  //           mp.generate(CELL); 
+  //           angleTarget = -5250.0;
+  //           break;
+  //         default:
+  //           break;
+  //       }
+  //     }
+  //     start = HAL_GetTick();
+  //   }
+
+  // float encAnglePIDResult;
+  //   if(updatePIDflag)
+  //   {
+  //     dt = HAL_GetTick() - start;
+      
+  //     //Get new speed cap from motion profile;
+  //     float update = mp.update(dt);
+  //     speedTarget = 0;
+  //     if(next == DriveCommand::FORWARD)
+  //     {
+  //       speedTarget = update;
+  //     }
+
+  //     encAnglePID.setTarget(angleTarget);
+  //     encAnglePIDResult = encAnglePID.update(EncAngle);
+  //     speedW = abs(encAnglePIDResult) < 10 ? encAnglePIDResult : encAnglePIDResult / abs(encAnglePIDResult) *10;
+  //     motorLPID.setTarget(speedTarget - speedW);
+  //     motorRPID.setTarget(speedTarget + speedW);
+  //     pwmL = motorLPID.update(diffL);
+  //     pwmR = motorRPID.update(diffR);
+
+  //     updatePIDflag = false;
+  //     start = HAL_GetTick();
+  //   }
+
+
+  //     sprintf(gzbuf,"Command: %d, Time: %d / %d\r\n", (int)next, (int)mp.m_currTime, (int)mp.m_totalTime);
+  //     print((uint8_t*)gzbuf);
+
+
+  //   motorR.setSpeed(pwmR);
+  //   motorL.setSpeed(pwmL);
+
+
+  //   imuSum += imu.read();
+  //   HAL_Delay(1);
+
+  // /* USER CODE END WHILE */
+
+  // /* USER CODE BEGIN 3 */
+
+  // }
   /* USER CODE END 3 */ 
 
 }
@@ -365,15 +377,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-void initEncoders()
-{
-  HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_1 | TIM_CHANNEL_2);
-  TIM2->EGR=TIM_EGR_UG;
-  TIM2->CR1=TIM_CR1_CEN;
-  HAL_TIM_Encoder_Start(&htim5,  TIM_CHANNEL_1 | TIM_CHANNEL_2);
-  TIM5->EGR=TIM_EGR_UG;
-  TIM5->CR1=TIM_CR1_CEN;
-}
+
 
 void HAL_SYSTICK_Callback(void)
 {
