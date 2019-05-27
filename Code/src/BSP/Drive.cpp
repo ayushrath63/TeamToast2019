@@ -17,7 +17,7 @@ void move(float speedTarget, float angleTarget) {
 	motorRPID.setTarget(speedTarget + speedW);
 	pwmL = motorLPID.update(diffL);
 	pwmR = motorRPID.update(diffR);
-	if (abs(pwmR) < 20 && abs(pwmL) < 20 ) {
+	if (speedTarget == 0.0 && abs(encAnglePID.getError()) < 45) {
 		Command::complete = true;
 	}
 }
@@ -28,6 +28,10 @@ void goForward() {
 	float temp = distancePID.update(EncAvg);
 	float speed = temp > 10? 10 : temp;
 	move(speed,0.0);
+	if(abs(distancePID.getError()) < 100)
+	{
+		Command::complete = true;
+	}
 	
 }
 void turnLeft(){
