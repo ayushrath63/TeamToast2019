@@ -2,11 +2,12 @@
 #ifndef __DRIVE_H__
 #define __DRIVE_H__
 
+#include "main.h"
 #include "IRSensor.hpp"
 #include "Encoder.hpp"
 #include "PID.hpp"
 
-enum class DriveCommand
+enum class DriveCommand : uint8_t
 {
     FORWARD,
     BACKWARD,
