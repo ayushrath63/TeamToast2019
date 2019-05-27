@@ -1,34 +1,8 @@
 #include "Drive.hpp"
 #include <cmath>
-// Drive::Drive(IMU* imu, Motor* motorL, Motor* motorR, PID* motorLPID, PID* motorLPID){
-// :m_imu(imu), m_motorL(motorL), m_motorR(motorR), m_motorLPID (motorLPID), m_motorRPID (motorRPID)
-// 	m_imuSum = 0 
-// }
-// void turnRight() {
-// 	m_imuSum = 0 
-// 	if (m_imuSum >= -3000 ) {
-//       motorR->setSpeed(rSpeed);
-//       motorL->setSpeed(lSpeed);
-//     }
-//     else {
-//       motorR->setSpeed(0);
-//       motorL->setSpeed(0);
-//     }
-// }
-// void turnLeft() {
-// 	m_imuSum = 0 
-// 	if (m_imuSum <= 3000 ) {
-//       motorR->setSpeed(rSpeed);
-//       motorL->setSpeed(lSpeed);
-//     }
-//     else {
-//       motorR->setSpeed(0);
-//       motorL->setSpeed(0);
-//     }
-    
-// }
+
 int pwmL, pwmR;
-const int CELL = 4400; 
+const int CELL = 4400;
 
 PID motorLPID(20.0,0.35,0.5);
 PID motorRPID(20.0,0.35,0.5);
@@ -66,26 +40,23 @@ void turn180(){
 	move(0,10500);
 }
 namespace Command {
-	DriveCommand cur_command = DriveCommand::FORWARD, next_command = DriveCommand::NONE; 
+	etl::queue<DriveCommand, 255, etl::memory_model::MEMORY_MODEL_SMALL> Q;
 	bool complete = false; 
 };
 void Command::setNextCommand() {
-	 char gzbuf[128];
-    sprintf(gzbuf,"SEND NEXT COMMAND");
-    print((uint8_t*)gzbuf);
+	char printbuf[128];
+	printf(printbuf,"SENDING");
+	print((uint8_t*)printbuf);
 	if (!ifdetectedFrontWall() && (rand()%3)) {
-		cur_command = DriveCommand::FORWARD;
-		next_command = DriveCommand::NONE;
+		Q.push(DriveCommand::FORWARD);
 	} else if (!ifdetectedLeftWall()&& (rand()%2)) {
-		cur_command = DriveCommand::TURNLEFT; 
-		next_command = DriveCommand::FORWARD;
+		Q.push(DriveCommand::TURNLEFT);
+		Q.push(DriveCommand::FORWARD);
 	} else if (!ifdetectedRightWall()&& (rand()%2)) {
-		cur_command =  DriveCommand::TURNRIGHT; 
-		next_command = DriveCommand::FORWARD;
+		Q.push(DriveCommand::TURNRIGHT);
+		Q.push(DriveCommand::FORWARD);
 	} else {
-		cur_command = DriveCommand::TURN180;
-		next_command = DriveCommand::FORWARD;
+		Q.push(DriveCommand::TURN180);
+		Q.push(DriveCommand::FORWARD);
 	}
-	
-
 }

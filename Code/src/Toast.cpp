@@ -53,7 +53,6 @@
 #include "PID.hpp"
 #include "Drive.hpp"
 #include "Encoder.hpp"
-#include <etl/queue.h>
 #include <cmath>
 /* USER CODE END Includes */
 
@@ -141,16 +140,16 @@ int main(void)
 
   sprintf(printbuf, "STARTING\r\n");
   print((uint8_t*)printbuf);
+
+  DriveCommand nextCommand = DriveCommand::NONE;
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 
-  etl::queue<DriveCommand, 255, etl::memory_model::MEMORY_MODEL_SMALL> cq;
   while(1) {
-    cq.push(Command::cur_command);
     if (Command::complete) {
-      sprintf(printbuf,"Cur_Command: %d, Next: %d \r\n", (int)cq.front(), (int)Command::next_command);
+      sprintf(printbuf,"QSize %d, next %d \r\n", (int)Command::Q.size(), (int)nextCommand);
       print((uint8_t*)printbuf);
 
       motorR.setSpeed(0);
@@ -158,18 +157,17 @@ int main(void)
       //Adjust 
       resetEncoder();
       Command::complete = false;
-      HAL_Delay(2000);
+      HAL_Delay(500);
       IRSensor_readAll();
-      if (Command::next_command == DriveCommand::NONE) {
+      if (Command::Q.empty()) {
         Command::setNextCommand(); // set the current command too 
       } else {
-        Command::cur_command = Command::next_command;
-        Command::next_command = DriveCommand::NONE;
+        Command::Q.pop_into(nextCommand);
       }
     } else {
       //sprintf(printbuf,"pwmL: %d, pwmR: %d \r\n", (int)(pwmL*1000), (int)(pwmR*1000));
       //print((uint8_t*)printbuf);
-      switch(Command::cur_command) {
+      switch(nextCommand) {
         case DriveCommand::FORWARD:
           goForward();
           break;
@@ -181,6 +179,9 @@ int main(void)
           break;
         case DriveCommand::TURN180:
           turn180();
+          break;
+        case DriveCommand::NONE:
+          Command::complete = true;
           break;
         default:
           goForward();

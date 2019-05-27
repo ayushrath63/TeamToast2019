@@ -34,23 +34,21 @@ void IRSensor_readAll() {
     IRTopLeft.read();
     IRTopRight.read();
     sprintf(gzbuf,"FL: %d, TopL: %d, TopR: %d\r\n", IRLeft.value(),  IRTopLeft.value(), IRTopRight.value());
-   print((uint8_t*)gzbuf);
+    print((uint8_t*)gzbuf);
 }
 
 bool ifdetectedFrontWall() {
-    //char gzbuf[128];
     int res = IRLeft.value() > OPEN_F;
-    //sprintf(gzbuf,"ifFront wall: return val: %d\n", res);
-    //print((uint8_t*)gzbuf);
     return (res);
 }
 bool ifdetectedRightWall() {
-    // char gzbuf[128];
-    // sprintf(gzbuf,"IN IFRIGHT WALL");
-    // print((uint8_t*)gzbuf);
+    return (IRTopRight.value() > OPEN_R);
+}
 
-    return (IRTopRight.value() > OPEN_R);} 
-bool ifdetectedLeftWall() {return (IRTopLeft.value() > OPEN_L);} 
+bool ifdetectedLeftWall() {
+    return (IRTopLeft.value() > OPEN_L);
+}
+
 bool ifcentered () 
 {
     return (IRTopRight.value() > 2900 &&
@@ -58,6 +56,3 @@ bool ifcentered ()
             IRTopLeft.value() > 3600 &&
             IRTopLeft.value() < 3830 );
 }
-
-//    sprintf(gzbuf, "%ld, %ld, %ld, %ld\r\n", ADC_VAL1, ADC_VAL2, ADC_VAL3, ADC_VAL4);
-//    print((uint8_t*)gzbuf);

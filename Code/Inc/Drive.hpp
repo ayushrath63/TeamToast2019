@@ -6,6 +6,7 @@
 #include "IRSensor.hpp"
 #include "Encoder.hpp"
 #include "PID.hpp"
+#include <etl/queue.h>
 
 enum class DriveCommand : uint8_t
 {
@@ -18,8 +19,9 @@ enum class DriveCommand : uint8_t
 };
 
 extern int pwmL, pwmR;
+
 namespace Command {
-	extern DriveCommand cur_command, next_command; 
+	extern etl::queue<DriveCommand, 255, etl::memory_model::MEMORY_MODEL_SMALL> Q;
 	extern bool complete; 
 	void setNextCommand(); 
 };
