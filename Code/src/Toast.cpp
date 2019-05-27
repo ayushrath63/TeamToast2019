@@ -53,6 +53,7 @@
 #include "PID.hpp"
 #include "Drive.hpp"
 #include "Encoder.hpp"
+#include "Buzzer.hpp"
 #include <cmath>
 /* USER CODE END Includes */
 
@@ -132,6 +133,8 @@ int main(void)
   Motor motorL(&htim3);
   Motor motorR(&htim4, true);
 
+  Buzzer buzz(&htim3, TIM_CHANNEL_3);
+
   HAL_Delay(2000);
   int32_t imuSum = 0; 
   char printbuf[128];
@@ -146,7 +149,6 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-
   while(1) {
     if (Command::complete) {
       sprintf(printbuf,"QSize %d, next %d \r\n", (int)Command::Q.size(), (int)nextCommand);
@@ -156,8 +158,10 @@ int main(void)
       motorL.setSpeed(0);
       //Adjust 
       resetEncoder();
+      buzz.playMidiNote(126);
       Command::complete = false;
-      HAL_Delay(500);
+      HAL_Delay(100);
+      buzz.playMidiNote(0);
       IRSensor_readAll();
       if (Command::Q.empty()) {
         Command::setNextCommand(); // set the current command too 
@@ -194,8 +198,8 @@ int main(void)
     HAL_Delay(1);
     motorR.setSpeed(pwmR);
     motorL.setSpeed(pwmL);
+    
   }
-
   /* USER CODE END 3 */ 
 
 }
@@ -272,6 +276,8 @@ void HAL_SYSTICK_Callback(void)
   EncAngle = (EncR - EncL);
   diffL = EncL - prevEncL;
   diffR = EncR - prevEncR;
+
+  IRSensor_readAll();
 
   updatePIDflag = true;
 }

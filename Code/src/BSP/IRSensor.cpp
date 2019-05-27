@@ -29,12 +29,9 @@ uint32_t IRSensor::value(){
 }
 
 void IRSensor_readAll() {
-    char gzbuf[128];
     IRLeft.read();
     IRTopLeft.read();
     IRTopRight.read();
-    sprintf(gzbuf,"FL: %d, TopL: %d, TopR: %d\r\n", IRLeft.value(),  IRTopLeft.value(), IRTopRight.value());
-    print((uint8_t*)gzbuf);
 }
 
 bool ifdetectedFrontWall() {
