@@ -1,4 +1,5 @@
 #include "Drive.hpp"
+#include "Utils.hpp"
 #include <cmath>
 
 int pwmL, pwmR;
@@ -7,12 +8,29 @@ const int CELL = 4400;
 PID motorLPID(20.0,0.35,0.5);
 PID motorRPID(20.0,0.35,0.5);
 PID encAnglePID(0.02,0.0,0.0);
+PID irAnglePID(0.02,0.0,0.0);
 PID distancePID(0.02,0.0,0.0);
 
 void move(float speedTarget, float angleTarget) {
+	// if(ifdetectedLeftWall() && ifdetectedRightWall()) {
+	// 	irError = IRTopRight.value() - IRTopLeft.value() + 0; //change 0 to offset
+	// } else 
+	float irError = 0.0, irPIDResult = 0.0;
+	if(angleTarget == 0.0)
+	{
+		if(ifdetectedRightWall()) {
+			irError = (IRTopRight.value()-WALL_R);
+		} else if(ifdetectedLeftWall()) {
+			irError = (WALL_L - IRTopLeft.value());
+		} 
+		irAnglePID.setTarget(0.0);
+		irPIDResult = irAnglePID.update(irError);
+	}
+	
 	encAnglePID.setTarget(angleTarget);
 	float encAnglePIDResult = encAnglePID.update(EncAngle);
-	float speedW = abs(encAnglePIDResult) < 10 ? encAnglePIDResult : encAnglePIDResult / abs(encAnglePIDResult) *10;
+	float anglePIDResultSum = irPIDResult + encAnglePIDResult;
+	float speedW = abs(anglePIDResultSum) < 10 ? anglePIDResultSum : sgn(anglePIDResultSum) * 10;
 	motorLPID.setTarget(speedTarget - speedW);
 	motorRPID.setTarget(speedTarget + speedW);
 	pwmL = motorLPID.update(diffL);
