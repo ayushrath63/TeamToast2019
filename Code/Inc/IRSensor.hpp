@@ -24,13 +24,13 @@ constexpr int WALL_F = 2710;  // 2600 - 3000
 
 // The value when mouse is on the bottom  of the cell, 
 // if value small than this then there is an opening in the front
-constexpr int OPEN_F = 2100;
+constexpr int OPEN_F = 2000;
 // The value when mouse is on the left most of the cell, 
 // if value small than this then there is an opening on the right 
-constexpr int OPEN_R = 2700;
+constexpr int OPEN_R = 2350;
 // The value when mouse is on the right most of the cell, 
 // if value small than this then there is an opening on the left 
-constexpr int OPEN_L = 3500;
+constexpr int OPEN_L = 3280;
 
 
 

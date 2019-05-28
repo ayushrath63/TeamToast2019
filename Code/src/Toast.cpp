@@ -186,7 +186,7 @@ int main(void)
       //Adjust 
       resetEncoder();
       Command::complete = false;
-      HAL_Delay(2000);
+      HAL_Delay(500);
       IRSensor_readAll();
       if (Command::next_command == DriveCommand::NONE) {
         Command::setNextCommand(); // set the current command too 
