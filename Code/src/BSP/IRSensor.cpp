@@ -34,8 +34,7 @@ void IRSensor_readAll() {
 }
 
 bool ifdetectedFrontWall() {
-    int res = IRLeft.value() > OPEN_F;
-    return (res);
+    return IRLeft.value() > OPEN_F;
 }
 bool ifdetectedRightWall() {
     return (IRTopRight.value() > OPEN_R);
@@ -47,7 +46,8 @@ bool ifdetectedLeftWall() {
 
 bool ifcentered () 
 {
-    return (IRTopRight.value() > 2900 &&
+    return (
+        IRTopRight.value() > 2900 &&
             IRTopRight.value() < 3200 &&
             IRTopLeft.value() > 3600 &&
             IRTopLeft.value() < 3830 );

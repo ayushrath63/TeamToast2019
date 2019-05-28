@@ -5,4 +5,4 @@ template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
 
-#endif __UTILS_HPP__
+#endif //__UTILS_HPP__

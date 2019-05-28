@@ -30,7 +30,7 @@ constexpr int OPEN_F = 1100;
 constexpr int OPEN_R = 1200;
 // The value when mouse is on the right most of the cell, 
 // if value small than this then there is an opening on the left 
-constexpr int OPEN_L = 3400;
+constexpr int OPEN_L = 1700;
 
 
 
@@ -55,7 +55,7 @@ extern IRSensor IRLeft, IRTopLeft, IRTopRight;
 
 void IRSensor_readAll();
 bool ifdetectedFrontWall();
-bool ifdetectedRightWall(); 
+bool ifdetectedRightWall();
 bool ifdetectedLeftWall();
 bool ifcentered ();
 

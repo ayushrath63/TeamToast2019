@@ -16,16 +16,16 @@ void move(float speedTarget, float angleTarget) {
 	// 	irError = IRTopRight.value() - IRTopLeft.value() + 0; //change 0 to offset
 	// } else 
 	float irError = 0.0, irPIDResult = 0.0;
-	if(angleTarget == 0.0)
-	{
-		if(ifdetectedRightWall()) {
-			irError = (IRTopRight.value()-WALL_R);
-		} else if(ifdetectedLeftWall()) {
-			irError = (WALL_L - IRTopLeft.value());
-		} 
-		irAnglePID.setTarget(0.0);
-		irPIDResult = irAnglePID.update(irError);
-	}
+	// if(angleTarget == 0.0)
+	// {
+	// 	if(ifdetectedRightWall()) {
+	// 		irError = (IRTopRight.value()-WALL_R);
+	// 	} else if(ifdetectedLeftWall()) {
+	// 		irError = (WALL_L - IRTopLeft.value());
+	// 	} 
+	// 	irAnglePID.setTarget(0.0);
+	// 	irPIDResult = irAnglePID.update(irError);
+	// }
 	
 	encAnglePID.setTarget(angleTarget);
 	float encAnglePIDResult = encAnglePID.update(EncAngle);
@@ -68,25 +68,24 @@ namespace Command {
 };
 
 void Command::setNextCommand() {
-	char printbuf[128];
-	sprintf(printbuf,"SENDING ");
-	print((uint8_t*)printbuf);
 	if (!ifdetectedFrontWall()) {
-		sprintf(printbuf,"F\r\n");
-		print((uint8_t*)printbuf);
 		Q.push(DriveCommand::FORWARD);
-	} else if (!ifdetectedLeftWall()) {
-				sprintf(printbuf,"L\r\n");
-		print((uint8_t*)printbuf);
-		Q.push(DriveCommand::TURNLEFT);
-//		Q.push(DriveCommand::FORWARD);
-	} else if (!ifdetectedRightWall()) {
-				sprintf(printbuf,"R\r\n");
-		print((uint8_t*)printbuf);
-		Q.push(DriveCommand::TURNRIGHT);
-//		Q.push(DriveCommand::FORWARD);
 	} else {
-		Q.push(DriveCommand::TURN180);
+		Q.push(DriveCommand::NONE);
+// 	} else if (!ifdetectedLeftWall()) {
+// 		sprintf(printbuf,"L\r\n");
+// 		print((uint8_t*)printbuf);
+// 		Q.push(DriveCommand::TURNLEFT);
+// 		Q.push(DriveCommand::FORWARD);
+// 	} else if (!ifdetectedRightWall()) {
+// 		sprintf(printbuf,"R\r\n");
+// 		print((uint8_t*)printbuf);
+// 		Q.push(DriveCommand::TURNRIGHT);
+// 		Q.push(DriveCommand::FORWARD);
+// 	} else {
+// 		sprintf(printbuf,"180\r\n");
+// 		print((uint8_t*)printbuf);
+// 		Q.push(DriveCommand::TURN180);
 //		Q.push(DriveCommand::FORWARD);
 	}
 }

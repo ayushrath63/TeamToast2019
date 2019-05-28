@@ -30,7 +30,7 @@ else
 
 	# Assembler, Compiler and Linker flags and linker script settings
 	LDFLAGS=-lm -mthumb -mhard-float -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -Wl,--no-wchar-size-warning -Wl,--gc-sections -T$(LDSCRIPT) -static  -Wl,--start-group -lc -lm -lstdc++ -lsupc++ -Wl,--end-group -specs=nano.specs -specs=nosys.specs  -Wl,-cref "-Wl,-Map=$(BIN_DIR)/$(BIN_NAME).map" -Wl,--defsym=malloc_getpagesize_P=0x1000
-	ASMFLAGS=-c -O1 -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mthumb -mhard-float -specs=nano.specs -D"$(MCU)"  -x assembler-with-cpp $(INC)
+	ASMFLAGS=-c -Os -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mthumb -mhard-float -specs=nano.specs -D"$(MCU)"  -x assembler-with-cpp $(INC)
 	CFLAGS=-c -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -Os -Wall -ffunction-sections -fdata-sections -mthumb -mhard-float -specs=nano.specs -D"$(MCU)" $(INC)
 	CXXFLAGS=-fno-threadsafe-statics -c -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -std=c++14 -Os -Wall -ffunction-sections -fdata-sections -mthumb -mhard-float -specs=nano.specs -fno-exceptions -fno-rtti -D"$(MCU)" $(INC)
 
