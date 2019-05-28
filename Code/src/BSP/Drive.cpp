@@ -41,6 +41,7 @@ void move(float speedTarget, float angleTarget) {
 	if (speedTarget == 0.0 && abs(encAnglePID.getError()) < 45) {
 		Command::complete = true;
 	}
+}
 
 void goForward() {
 	if (ifdetectedFrontWall()) {
@@ -57,7 +58,6 @@ void goForward() {
 		Command::complete = true;
 	}
 
-	
 }
 void turnLeft(){
 	move(0,5250);
