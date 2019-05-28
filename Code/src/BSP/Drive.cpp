@@ -43,24 +43,32 @@ void turnRight(){
 void turn180(){
 	move(0,10500);
 }
+
 namespace Command {
 	etl::queue<DriveCommand, 255, etl::memory_model::MEMORY_MODEL_SMALL> Q;
 	bool complete = false; 
 };
+
 void Command::setNextCommand() {
 	char printbuf[128];
-	printf(printbuf,"SENDING");
+	sprintf(printbuf,"SENDING ");
 	print((uint8_t*)printbuf);
-	if (!ifdetectedFrontWall() && (rand()%3)) {
+	if (!ifdetectedFrontWall()) {
+		sprintf(printbuf,"F\r\n");
+		print((uint8_t*)printbuf);
 		Q.push(DriveCommand::FORWARD);
-	} else if (!ifdetectedLeftWall()&& (rand()%2)) {
+	} else if (!ifdetectedLeftWall()) {
+				sprintf(printbuf,"L\r\n");
+		print((uint8_t*)printbuf);
 		Q.push(DriveCommand::TURNLEFT);
-		Q.push(DriveCommand::FORWARD);
-	} else if (!ifdetectedRightWall()&& (rand()%2)) {
+//		Q.push(DriveCommand::FORWARD);
+	} else if (!ifdetectedRightWall()) {
+				sprintf(printbuf,"R\r\n");
+		print((uint8_t*)printbuf);
 		Q.push(DriveCommand::TURNRIGHT);
-		Q.push(DriveCommand::FORWARD);
+//		Q.push(DriveCommand::FORWARD);
 	} else {
 		Q.push(DriveCommand::TURN180);
-		Q.push(DriveCommand::FORWARD);
+//		Q.push(DriveCommand::FORWARD);
 	}
 }
