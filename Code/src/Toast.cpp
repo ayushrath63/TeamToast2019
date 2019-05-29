@@ -148,9 +148,6 @@ int main(void)
   int32_t dt = 0;
   int32_t start = HAL_GetTick();
 
-  sprintf(printbuf, "STARTING\r\n");
-  print((uint8_t*)printbuf);
-
   DriveCommand nextCommand = DriveCommand::NONE;
   /* USER CODE END 2 */
 
@@ -171,14 +168,19 @@ int main(void)
       HAL_Delay(100);
       //buzz.playMidiNote(0);
 
-      IRSensor_readAll();
+      sprintf(printbuf,"F: %d %d, L: %d %d, R: %d %d\r\n", ifdetectedFrontWall(), IRLeft.value(), ifdetectedLeftWall(), IRTopLeft.value(), ifdetectedRightWall(), IRTopRight.value());
+      print((uint8_t*)printbuf);
       if (Command::Q.empty()) {
-        Command::setNextCommand(); // set the current command too 
+
+        Command::setNextCommand(); // put new command into queue
       } else {
+
         Command::Q.pop_into(nextCommand);
+        sprintf(printbuf,"Get next command: %d \n", (int)nextCommand);
+        print((uint8_t*)printbuf);
       }
     } else {
-      sprintf(printbuf,"F: %d %d, L: %d %d, R: %d %d\r\n", ifdetectedFrontWall(), IRLeft.value(), ifdetectedLeftWall(), IRTopLeft.value(), ifdetectedRightWall(), IRTopRight.value());
+      //sprintf(printbuf,"F: %d %d, L: %d %d, R: %d %d\r\n", ifdetectedFrontWall(), IRLeft.value(), ifdetectedLeftWall(), IRTopLeft.value(), ifdetectedRightWall(), IRTopRight.value());
       
       switch(nextCommand) {
         case DriveCommand::FORWARD:
@@ -209,9 +211,9 @@ int main(void)
     // sprintf(printbuf,"EncoderL: %d, EncoderR: %d \r\n", EncL, EncR);
     print((uint8_t*)printbuf);
     HAL_Delay(1);
-    // motorR.setSpeed(pwmR);
-    // motorL.setSpeed(pwmL);
-    
+    motorR.setSpeed(pwmR);
+    motorL.setSpeed(pwmL);
+
   }
   /* USER CODE END 3 */ 
 

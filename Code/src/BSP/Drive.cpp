@@ -8,33 +8,50 @@ const int CELL = 4400;
 PID motorLPID(20.0,0.35,0.5);
 PID motorRPID(20.0,0.35,0.5);
 PID encAnglePID(0.02,0.0,0.0);
-PID irAnglePID(0.02,0.0,0.0);
+PID irAnglePID(0.00,0.0,0.0); // 0.002
 PID distancePID(0.02,0.0,0.0);
 
-void move(float speedTarget, float angleTarget) {
-	// if(ifdetectedLeftWall() && ifdetectedRightWall()) {
-	// 	irError = IRTopRight.value() - IRTopLeft.value() + 0; //change 0 to offset
-	// } else 
-	float irError = 0.0, irPIDResult = 0.0;
-	// if(angleTarget == 0.0)
-	// {
-	// 	if(ifdetectedRightWall()) {
-	// 		irError = (IRTopRight.value()-WALL_R);
-	// 	} else if(ifdetectedLeftWall()) {
-	// 		irError = (WALL_L - IRTopLeft.value());
-	// 	} 
-	// 	irAnglePID.setTarget(0.0);
-	// 	irPIDResult = irAnglePID.update(irError);
-	// }
-	
+void moveEncoder (float speedTarget, float angleTarget) {
 	encAnglePID.setTarget(angleTarget);
 	float encAnglePIDResult = encAnglePID.update(EncAngle);
-
-	float anglePIDResultSum = irPIDResult + encAnglePIDResult;
-	float speedW = abs(anglePIDResultSum) < 10 ? anglePIDResultSum : sgn(anglePIDResultSum) * 10;
+	float speedW = abs(encAnglePIDResult) < 10 ? encAnglePIDResult : sgn(encAnglePIDResult) * 10;
 
 	motorLPID.setTarget(speedTarget - speedW);
 	motorRPID.setTarget(speedTarget + speedW);
+
+}
+void moveIR(float speedTarget) {
+	float irError = 0.0, irPIDResult = 0.0;
+	if(ifdetectedRightWall()) {
+		irError = -1*(IRTopRight.value()-WALL_R);
+	} else if(ifdetectedLeftWall()) {
+		irError = (WALL_L - IRTopLeft.value());
+	} 
+
+
+
+	irAnglePID.setTarget(0.0);
+	irPIDResult = irAnglePID.update(irError);
+	float speedW = abs(irPIDResult) < 10 ? irPIDResult : sgn(irPIDResult) * 10;
+	
+
+	char printbuf[128];
+	sprintf(printbuf,"irError %d, irPIDResult:%d",(int)(irError), (int)(irPIDResult));
+    print((uint8_t*)printbuf);
+
+	motorLPID.setTarget(speedTarget - speedW);
+	motorRPID.setTarget(speedTarget + speedW);
+}
+
+
+void move(float speedTarget, float angleTarget) {
+
+	if( (ifdetectedRightWall() || ifdetectedLeftWall()) && (angleTarget == 0) ) {
+		moveIR(speedTarget);
+	} else {
+		moveEncoder(speedTarget, angleTarget);
+	}
+
 	pwmL = motorLPID.update(diffL);
 	pwmR = motorRPID.update(diffR);
 
@@ -42,6 +59,7 @@ void move(float speedTarget, float angleTarget) {
 		Command::complete = true;
 	}
 }
+
 
 void goForward() {
 	if (ifdetectedFrontWall()) {
@@ -74,7 +92,7 @@ void turn180(){
 
 namespace Command {
 	etl::queue<DriveCommand, 255, etl::memory_model::MEMORY_MODEL_SMALL> Q;
-	bool complete = false; 
+	bool complete = true; 
 };
 
 void Command::setNextCommand() {
@@ -135,27 +153,28 @@ void Command::setNextCommand() {
 	// 	cur_command = DriveCommand::TURN180;
 	// 	next_command = DriveCommand::FORWARD;
 	// }
-	
-
+	char printbuf[50];
+	sprintf(printbuf,"if front wall: %d", ifdetectedFrontWall());
+    print((uint8_t*)printbuf);
 
 	if (!ifdetectedFrontWall()) {
+		sprintf(printbuf,"NO WALL");
+    	print((uint8_t*)printbuf);
+		Q.push(DriveCommand::FORWARD);
+	} else if (!ifdetectedLeftWall()) {
+		sprintf(printbuf,"L\r\n");
+		print((uint8_t*)printbuf);
+		Q.push(DriveCommand::TURNLEFT);
+		Q.push(DriveCommand::FORWARD);
+	} else if (!ifdetectedRightWall()) {
+		sprintf(printbuf,"R\r\n");
+		print((uint8_t*)printbuf);
+		Q.push(DriveCommand::TURNRIGHT);
 		Q.push(DriveCommand::FORWARD);
 	} else {
-		Q.push(DriveCommand::NONE);
-// 	} else if (!ifdetectedLeftWall()) {
-// 		sprintf(printbuf,"L\r\n");
-// 		print((uint8_t*)printbuf);
-// 		Q.push(DriveCommand::TURNLEFT);
-// 		Q.push(DriveCommand::FORWARD);
-// 	} else if (!ifdetectedRightWall()) {
-// 		sprintf(printbuf,"R\r\n");
-// 		print((uint8_t*)printbuf);
-// 		Q.push(DriveCommand::TURNRIGHT);
-// 		Q.push(DriveCommand::FORWARD);
-// 	} else {
-// 		sprintf(printbuf,"180\r\n");
-// 		print((uint8_t*)printbuf);
-// 		Q.push(DriveCommand::TURN180);
-//		Q.push(DriveCommand::FORWARD);
+		sprintf(printbuf,"180\r\n");
+		print((uint8_t*)printbuf);
+		Q.push(DriveCommand::TURN180);
+		Q.push(DriveCommand::FORWARD);
 	}
 }

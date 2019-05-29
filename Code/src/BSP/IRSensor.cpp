@@ -12,7 +12,7 @@ IRSensor::IRSensor (ADC_HandleTypeDef* adcHandle, uint32_t channel, GPIO_TypeDef
     m_val = 0; 
 }
 
-uint32_t IRSensor::read() volatile {
+int IRSensor::read() volatile {
 
     uint32_t ADC_VAL;
     HAL_GPIO_WritePin(m_GPIOx, m_GPIO_Pin, GPIO_PIN_SET);
@@ -20,10 +20,10 @@ uint32_t IRSensor::read() volatile {
     //HAL_Delay(1);
     HAL_GPIO_WritePin(m_GPIOx, m_GPIO_Pin, GPIO_PIN_RESET);
     m_val = ADC_VAL;
-    return ADC_VAL;
+    return ADC_VAL; 
 }
 
-uint32_t IRSensor::value() volatile{
+int IRSensor::value() volatile{
     return m_val;
 }
 
@@ -31,10 +31,11 @@ void IRSensor_readAll() {
     IRLeft.read();
     IRTopLeft.read();
     IRTopRight.read();
+
 }
 
 bool ifdetectedFrontWall() {
-    return IRLeft.value() > OPEN_F;
+    return (IRLeft.value() > OPEN_F);
 }
 bool ifdetectedRightWall() {
     return (IRTopRight.value() > OPEN_R);

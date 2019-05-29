@@ -63,6 +63,8 @@ void MX_USART1_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 void print(uint8_t* msg);
+
+
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus
