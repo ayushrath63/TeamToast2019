@@ -21,24 +21,11 @@ void moveEncoder (float speedTarget, float angleTarget) {
 
 }
 
-void moveIR(float speedTarget) {
-
-	float irError = 0.0, irPIDResult = 0.0;
-	if(ifdetectedRightWall()) {
-		irError = WALL_R - IRTopRight.value();
-		
-		// char printbuf[64];
-		// sprintf(printbuf, "Error: %d, SpeedW: %d\r\n", (int)(irError), (int)(irPIDResult));
-		// print((uint8_t*)printbuf);
-	} else if(ifdetectedLeftWall()) {
-		irError = (WALL_L - IRTopLeft.value());
-	} 
+void moveIR(float speedTarget, float irError) {
 
 	irAnglePID.setTarget(0.0);
-	irPIDResult = irAnglePID.update(irError);
+	float irPIDResult = irAnglePID.update(irError);
 	float speedW = abs(irPIDResult) < 10 ? irPIDResult : sgn(irPIDResult) * 10;
-
-	
 
 	motorLPID.setTarget(speedTarget - speedW);
 	motorRPID.setTarget(speedTarget + speedW);
@@ -47,8 +34,20 @@ void moveIR(float speedTarget) {
 
 void move(float speedTarget, float angleTarget) {
 
-	if( (ifdetectedRightWall() || ifdetectedLeftWall()) && (angleTarget == 0) ) {
-		moveIR(speedTarget);
+	float irError = 0.0;
+	if(ifdetectedRightWall()) {
+		irError = WALL_R - IRTopRight.value(); 
+	} else if(ifdetectedLeftWall()) {
+		irError = IRTopLeft.value() - WALL_L;
+	} 
+
+	char printbuf[64];
+	sprintf(printbuf,"Err: %d\r\n", (int)irError);
+	print((uint8_t*)printbuf);
+
+
+	if( ((irError < 0) && ifdetectedRightWall()) || ((irError > 0) && ifdetectedLeftWall()) && (angleTarget == 0) ) {
+		moveIR(speedTarget, irError);
 	} else {
 		moveEncoder(speedTarget, angleTarget);
 	}
