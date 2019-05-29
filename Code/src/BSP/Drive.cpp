@@ -26,10 +26,10 @@ void moveIR(float speedTarget) {
 	float irError = 0.0, irPIDResult = 0.0;
 	if(ifdetectedRightWall()) {
 		irError = WALL_R - IRTopRight.value();
-		irError = irError < 0 ? irError : 0;
-		char printbuf[64];
-		sprintf(printbuf, "Error: %d, SpeedW: %d\r\n", (int)(irError), (int)(irPIDResult));
-		print((uint8_t*)printbuf);
+		
+		// char printbuf[64];
+		// sprintf(printbuf, "Error: %d, SpeedW: %d\r\n", (int)(irError), (int)(irPIDResult));
+		// print((uint8_t*)printbuf);
 	} else if(ifdetectedLeftWall()) {
 		irError = (WALL_L - IRTopLeft.value());
 	} 
