@@ -19,6 +19,7 @@ enum class DriveCommand : uint8_t
 };
 
 extern int pwmL, pwmR;
+extern PID motorLPID, motorRPID, encAnglePID, irAnglePID, distancePID;
 
 namespace Command {
 	extern etl::queue<DriveCommand, 255, etl::memory_model::MEMORY_MODEL_SMALL> Q;

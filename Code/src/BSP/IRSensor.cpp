@@ -42,7 +42,10 @@ bool ifdetectedRightWall() {
 }
 
 bool ifdetectedLeftWall() {
-    return (IRTopLeft.value() > OPEN_L );
+    if(IRLeft.value() > OPEN_F)
+        return IRTopLeft.value() > 2400;
+    else
+        return (IRTopLeft.value() >  OPEN_L);
 }
 
 bool ifcentered () 

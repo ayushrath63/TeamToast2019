@@ -3,12 +3,12 @@
 #include <cmath>
 
 int pwmL, pwmR;
-const int CELL = 4400;
+const int CELL = 4500;
 
 PID motorLPID(20.0,0.35,0.5);
 PID motorRPID(20.0,0.35,0.5);
 PID encAnglePID(0.02,0.0,0.0);
-PID irAnglePID(0.00,0.0,0.0); // 0.002
+PID irAnglePID(0.02,0.0,0.0); // 0.002
 PID distancePID(0.02,0.0,0.0);
 
 void moveEncoder (float speedTarget, float angleTarget) {
@@ -20,24 +20,25 @@ void moveEncoder (float speedTarget, float angleTarget) {
 	motorRPID.setTarget(speedTarget + speedW);
 
 }
+
 void moveIR(float speedTarget) {
+
 	float irError = 0.0, irPIDResult = 0.0;
 	if(ifdetectedRightWall()) {
-		irError = -1*(IRTopRight.value()-WALL_R);
+		irError = WALL_R - IRTopRight.value();
+		irError = irError < 0 ? irError : 0;
+		char printbuf[64];
+		sprintf(printbuf, "Error: %d, SpeedW: %d\r\n", (int)(irError), (int)(irPIDResult));
+		print((uint8_t*)printbuf);
 	} else if(ifdetectedLeftWall()) {
 		irError = (WALL_L - IRTopLeft.value());
 	} 
 
-
-
 	irAnglePID.setTarget(0.0);
 	irPIDResult = irAnglePID.update(irError);
 	float speedW = abs(irPIDResult) < 10 ? irPIDResult : sgn(irPIDResult) * 10;
-	
 
-	char printbuf[128];
-	sprintf(printbuf,"irError %d, irPIDResult:%d",(int)(irError), (int)(irPIDResult));
-    print((uint8_t*)printbuf);
+	
 
 	motorLPID.setTarget(speedTarget - speedW);
 	motorRPID.setTarget(speedTarget + speedW);
@@ -153,27 +154,16 @@ void Command::setNextCommand() {
 	// 	cur_command = DriveCommand::TURN180;
 	// 	next_command = DriveCommand::FORWARD;
 	// }
-	char printbuf[50];
-	sprintf(printbuf,"if front wall: %d", ifdetectedFrontWall());
-    print((uint8_t*)printbuf);
 
 	if (!ifdetectedFrontWall()) {
-		sprintf(printbuf,"NO WALL");
-    	print((uint8_t*)printbuf);
 		Q.push(DriveCommand::FORWARD);
 	} else if (!ifdetectedLeftWall()) {
-		sprintf(printbuf,"L\r\n");
-		print((uint8_t*)printbuf);
 		Q.push(DriveCommand::TURNLEFT);
 		Q.push(DriveCommand::FORWARD);
 	} else if (!ifdetectedRightWall()) {
-		sprintf(printbuf,"R\r\n");
-		print((uint8_t*)printbuf);
 		Q.push(DriveCommand::TURNRIGHT);
 		Q.push(DriveCommand::FORWARD);
 	} else {
-		sprintf(printbuf,"180\r\n");
-		print((uint8_t*)printbuf);
 		Q.push(DriveCommand::TURN180);
 		Q.push(DriveCommand::FORWARD);
 	}

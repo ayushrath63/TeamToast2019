@@ -32,7 +32,7 @@ constexpr int OPEN_F = 1100;
 
 // The value when mouse is on the right most of the cell, 
 // if value small than this then there is an opening on the left 
-constexpr int OPEN_L = 1400;
+constexpr int OPEN_L = 1850;
 
 // The value when mouse is on the left most of the cell, 
 // if value small than this then there is an opening on the right 

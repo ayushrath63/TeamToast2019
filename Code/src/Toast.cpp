@@ -155,12 +155,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while(1) {
     if (Command::complete) {
-      sprintf(printbuf,"QSize %d, next %d \r\n", (int)Command::Q.size(), (int)nextCommand);
-      print((uint8_t*)printbuf);
 
       motorR.setSpeed(0);
       motorL.setSpeed(0);
-      //Adjust 
+
       resetEncoder();
       //buzz.playMidiNote(126);
       Command::complete = false;
@@ -170,14 +168,15 @@ int main(void)
 
       sprintf(printbuf,"F: %d %d, L: %d %d, R: %d %d\r\n", ifdetectedFrontWall(), IRLeft.value(), ifdetectedLeftWall(), IRTopLeft.value(), ifdetectedRightWall(), IRTopRight.value());
       print((uint8_t*)printbuf);
+
+	    // sprintf(printbuf,"R? %d, irError %d\r\n", ifdetectedRightWall(), (int)(irAnglePID.getError()));
+      // print((uint8_t*)printbuf);
       if (Command::Q.empty()) {
 
         Command::setNextCommand(); // put new command into queue
       } else {
 
         Command::Q.pop_into(nextCommand);
-        sprintf(printbuf,"Get next command: %d \n", (int)nextCommand);
-        print((uint8_t*)printbuf);
       }
     } else {
       //sprintf(printbuf,"F: %d %d, L: %d %d, R: %d %d\r\n", ifdetectedFrontWall(), IRLeft.value(), ifdetectedLeftWall(), IRTopLeft.value(), ifdetectedRightWall(), IRTopRight.value());
@@ -205,11 +204,13 @@ int main(void)
         default:
           goForward();
       }
+      //Command::complete = true;
+
       //print((uint8_t*)printbuf);
     }
     // turn180();
     // sprintf(printbuf,"EncoderL: %d, EncoderR: %d \r\n", EncL, EncR);
-    print((uint8_t*)printbuf);
+    //print((uint8_t*)printbuf);
     HAL_Delay(1);
     motorR.setSpeed(pwmR);
     motorL.setSpeed(pwmL);
