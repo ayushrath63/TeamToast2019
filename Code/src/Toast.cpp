@@ -179,7 +179,7 @@ int main(void)
         Command::Q.pop_into(nextCommand);
       }
     } else {
-      //sprintf(printbuf,"F: %d %d, L: %d %d, R: %d %d\r\n", ifdetectedFrontWall(), IRLeft.value(), ifdetectedLeftWall(), IRTopLeft.value(), ifdetectedRightWall(), IRTopRight.value());
+      sprintf(printbuf,"F: %d %d, L: %d %d, R: %d %d\r\n", ifdetectedFrontWall(), IRLeft.value(), ifdetectedLeftWall(), IRTopLeft.value(), ifdetectedRightWall(), IRTopRight.value());
       
       switch(nextCommand) {
         case DriveCommand::FORWARD:
@@ -210,7 +210,7 @@ int main(void)
     }
     // turn180();
     // sprintf(printbuf,"EncoderL: %d, EncoderR: %d \r\n", EncL, EncR);
-    //print((uint8_t*)printbuf);
+    print((uint8_t*)printbuf);
     HAL_Delay(1);
     motorR.setSpeed(pwmR);
     motorL.setSpeed(pwmL);

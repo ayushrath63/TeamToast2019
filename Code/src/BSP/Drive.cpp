@@ -35,22 +35,30 @@ void moveIR(float speedTarget, float irError) {
 void move(float speedTarget, float angleTarget) {
 
 	float irError = 0.0;
-	if(ifdetectedRightWall()) {
+
+	// if too close to right wall 
+	if ((IRTopRight.value() - WALL_R > 20) && (angleTarget == 0)) {
 		irError = WALL_R - IRTopRight.value(); 
-	} else if(ifdetectedLeftWall()) {
+		moveIR(speedTarget, irError);
+	} else if ((IRTopLeft.value() - WALL_L > 20) && (angleTarget == 0)) {
 		irError = IRTopLeft.value() - WALL_L;
-	} 
+		moveIR(speedTarget, irError);
+	} else {
+		// no correction use encoder 
+		moveEncoder(speedTarget, angleTarget);
+	}
+
 
 	char printbuf[64];
 	sprintf(printbuf,"Err: %d\r\n", (int)irError);
 	print((uint8_t*)printbuf);
 
 
-	if( ((irError < 0) && ifdetectedRightWall()) || ((irError > 0) && ifdetectedLeftWall()) && (angleTarget == 0) ) {
-		moveIR(speedTarget, irError);
-	} else {
-		moveEncoder(speedTarget, angleTarget);
-	}
+	// if( ((irError < 0) && ifdetectedRightWall()) || ((irError > 0) && ifdetectedLeftWall()) && (angleTarget == 0) ) {
+	// 	moveIR(speedTarget, irError);
+	// } else {
+	// 	moveEncoder(speedTarget, angleTarget);
+	// }
 
 	pwmL = motorLPID.update(diffL);
 	pwmR = motorRPID.update(diffR);

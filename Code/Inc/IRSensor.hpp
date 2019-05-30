@@ -22,7 +22,7 @@ Right = 120
 
 
 constexpr int WALL_F = 1700;  // 450 - 3050
-constexpr int WALL_L = 2116; // 1546 - 3890
+constexpr int WALL_L = 2716; // 1546 - 3890
 constexpr int WALL_R = 1066; // 528 - 3834 
 
 
