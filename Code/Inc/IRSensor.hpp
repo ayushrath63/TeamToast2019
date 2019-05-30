@@ -21,7 +21,7 @@ Right = 120
 // Values when the mouse is in the center of the cell 
 
 
-constexpr int WALL_F = 1700;  // 450 - 3050
+constexpr int WALL_F = 1200;  // 450 - 3050
 constexpr int WALL_L = 2716; // 1546 - 3890
 constexpr int WALL_R = 1066; // 528 - 3834 
 
@@ -32,11 +32,11 @@ constexpr int OPEN_F = 1100;
 
 // The value when mouse is on the right most of the cell, 
 // if value small than this then there is an opening on the left 
-constexpr int OPEN_L = 1850;
+constexpr int OPEN_L = 2100;
 
 // The value when mouse is on the left most of the cell, 
 // if value small than this then there is an opening on the right 
-constexpr int OPEN_R = 400;
+constexpr int OPEN_R = 500;
 
 
 // no wall F= 2000

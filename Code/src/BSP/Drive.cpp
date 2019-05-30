@@ -3,18 +3,18 @@
 #include <cmath>
 
 int pwmL, pwmR;
-const int CELL = 4500;
+const int CELL = 4450;
 
 PID motorLPID(20.0,0.35,0.5);
 PID motorRPID(20.0,0.35,0.5);
 PID encAnglePID(0.02,0.0,0.0);
-PID irAnglePID(0.02,0.0,0.0); // 0.002
+PID irAnglePID(0.01,0.0,0.0); // 0.002
 PID distancePID(0.02,0.0,0.0);
 
 void moveEncoder (float speedTarget, float angleTarget) {
 	encAnglePID.setTarget(angleTarget);
 	float encAnglePIDResult = encAnglePID.update(EncAngle);
-	float speedW = abs(encAnglePIDResult) < 10 ? encAnglePIDResult : sgn(encAnglePIDResult) * 10;
+	float speedW = abs(encAnglePIDResult) < V_MAX ? encAnglePIDResult : sgn(encAnglePIDResult) * V_MAX;
 
 	motorLPID.setTarget(speedTarget - speedW);
 	motorRPID.setTarget(speedTarget + speedW);
@@ -25,7 +25,7 @@ void moveIR(float speedTarget, float irError) {
 
 	irAnglePID.setTarget(0.0);
 	float irPIDResult = irAnglePID.update(irError);
-	float speedW = abs(irPIDResult) < 10 ? irPIDResult : sgn(irPIDResult) * 10;
+	float speedW = abs(irPIDResult) < V_MAX ? irPIDResult : sgn(irPIDResult) * V_MAX;
 
 	motorLPID.setTarget(speedTarget - speedW);
 	motorRPID.setTarget(speedTarget + speedW);
@@ -48,18 +48,9 @@ void move(float speedTarget, float angleTarget) {
 		moveEncoder(speedTarget, angleTarget);
 	}
 
-
-	char printbuf[64];
-	sprintf(printbuf,"Err: %d\r\n", (int)irError);
-	print((uint8_t*)printbuf);
-
-
-	// if( ((irError < 0) && ifdetectedRightWall()) || ((irError > 0) && ifdetectedLeftWall()) && (angleTarget == 0) ) {
-	// 	moveIR(speedTarget, irError);
-	// } else {
-	// 	moveEncoder(speedTarget, angleTarget);
-	// }
-
+	// char printbuf[64];
+	// sprintf(printbuf,"Err: %d\r\n", (int)irError);
+	// print((uint8_t*)printbuf);
 	pwmL = motorLPID.update(diffL);
 	pwmR = motorRPID.update(diffR);
 
@@ -69,12 +60,12 @@ void move(float speedTarget, float angleTarget) {
 }
 
 
-void goForward() {
+void goForward(int cellCount) {
 	if (ifdetectedFrontWall()) {
-		Command::complete = true;
+		adjustFront();
 		return;
 	}
-	distancePID.setTarget(CELL);
+	distancePID.setTarget(cellCount * CELL);
 	float temp = distancePID.update(EncAvg);
 	float speed = temp > 15? 15 : temp;
 	move(speed,0.0);
@@ -96,6 +87,18 @@ void turnRight(){
 void turn180(){
 	move(0,10500);
 	if (EncAngle >= 10500) Command::complete = true;
+}
+
+void adjustFront() {
+	if(IRLeft.value() > WALL_F){
+		//HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
+		moveEncoder(-5.0, 0.0);
+		pwmL = motorLPID.update(diffL);
+		pwmR = motorRPID.update(diffR);
+	} else {
+		Command::complete = true;
+	}
+	return;
 }
 
 namespace Command {

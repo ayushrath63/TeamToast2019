@@ -18,6 +18,8 @@ enum class DriveCommand : uint8_t
     NONE
 };
 
+constexpr float V_MAX = 10.0; // tick/ms
+
 extern int pwmL, pwmR;
 extern PID motorLPID, motorRPID, encAnglePID, irAnglePID, distancePID;
 
@@ -27,8 +29,9 @@ namespace Command {
 	void setNextCommand(); 
 };
 
-void goForward(); 
+void goForward(int cellCount = 1); 
 void turnLeft();
 void turnRight();
 void turn180();
+void adjustFront();
 #endif /* __DRIVE_H__ */

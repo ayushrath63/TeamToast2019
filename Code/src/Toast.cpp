@@ -64,11 +64,6 @@
 
 volatile bool updatePIDflag = false;
 
-constexpr int32_t CNT_PER_REV = 5760;
-constexpr float V_CRUISE = 10.0; // tick/ms
-constexpr float MAX_ACCEL = 0.02; // tick/ms/ms
-constexpr float V_TURN = 10.0;
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -162,20 +157,17 @@ int main(void)
       resetEncoder();
       //buzz.playMidiNote(126);
       Command::complete = false;
-
-      HAL_Delay(100);
+      HAL_Delay(20);
       //buzz.playMidiNote(0);
 
       sprintf(printbuf,"F: %d %d, L: %d %d, R: %d %d\r\n", ifdetectedFrontWall(), IRLeft.value(), ifdetectedLeftWall(), IRTopLeft.value(), ifdetectedRightWall(), IRTopRight.value());
-      print((uint8_t*)printbuf);
+      // print((uint8_t*)printbuf);
 
 	    // sprintf(printbuf,"R? %d, irError %d\r\n", ifdetectedRightWall(), (int)(irAnglePID.getError()));
       // print((uint8_t*)printbuf);
       if (Command::Q.empty()) {
-
         Command::setNextCommand(); // put new command into queue
       } else {
-
         Command::Q.pop_into(nextCommand);
       }
     } else {
@@ -204,12 +196,7 @@ int main(void)
         default:
           goForward();
       }
-      //Command::complete = true;
-
-      //print((uint8_t*)printbuf);
     }
-    // turn180();
-    // sprintf(printbuf,"EncoderL: %d, EncoderR: %d \r\n", EncL, EncR);
     print((uint8_t*)printbuf);
     HAL_Delay(1);
     motorR.setSpeed(pwmR);
