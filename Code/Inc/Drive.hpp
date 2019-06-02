@@ -19,6 +19,7 @@ enum class DriveCommand : uint8_t
 };
 
 constexpr float V_MAX = 10.0; // tick/ms
+constexpr int CELL = 4550;
 
 extern int pwmL, pwmR;
 extern PID motorLPID, motorRPID, encAnglePID, irAnglePID, distancePID;

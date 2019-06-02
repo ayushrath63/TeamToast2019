@@ -22,21 +22,21 @@ Right = 120
 
 
 constexpr int WALL_F = 1200;  // 450 - 3050
-constexpr int WALL_L = 2716; // 1546 - 3890
-constexpr int WALL_R = 1066; // 528 - 3834 
+constexpr int WALL_L = 3000; // 1546 - 3890
+constexpr int WALL_R = 1000; // 528 - 3834 
 
 
 // The value when mouse is on the bottom  of the cell, 
-// if value small than this then there is an opening in the front
-constexpr int OPEN_F = 1100;
+// if value smaller than this then there is an opening in the front
+constexpr int OPEN_F = 800;
 
 // The value when mouse is on the right most of the cell, 
-// if value small than this then there is an opening on the left 
-constexpr int OPEN_L = 2100;
+// if value smaller than this then there is an opening on the left 
+constexpr int OPEN_L = 2500;
 
 // The value when mouse is on the left most of the cell, 
-// if value small than this then there is an opening on the right 
-constexpr int OPEN_R = 500;
+// if value smaller than this then there is an opening on the right 
+constexpr int OPEN_R = 433;
 
 
 // no wall F= 2000
@@ -62,7 +62,6 @@ void IRSensor_readAll();
 bool ifdetectedFrontWall();
 bool ifdetectedRightWall();
 bool ifdetectedLeftWall();
-bool ifcentered ();
 
 
 
