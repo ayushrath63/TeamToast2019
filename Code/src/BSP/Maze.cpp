@@ -252,13 +252,13 @@ void Maze::move(DriveCommand move) {
 MouseMovement Maze::nextMovement() {
     MouseMovement nextMovement;
     
-    char printbuf[128];
-    sprintf(printbuf,"\n\n\nIN MAZE:nextmovement|| wallInFront: %d \n",maze.wallInFront());
-    print((uint8_t*)printbuf);
+    // char printbuf[128];
+    // sprintf(printbuf,"\n\n\nIN MAZE:nextmovement|| wallInFront: %d \n",maze.wallInFront());
+    // print((uint8_t*)printbuf);
     discoverWalls();
-    sprintf(printbuf,"IN MAZE:nextmovement after|| heading: %d,wallInFront: %d, wallonleft: %d, wallonRight: %d \n",heading,maze.wallInFront(), maze.wallOnLeft(), maze.wallOnRight());
-    print((uint8_t*)printbuf);
-    printMaze();
+    // sprintf(printbuf,"IN MAZE:nextmovement after|| heading: %d,wallInFront: %d, wallonleft: %d, wallonRight: %d \n",heading,maze.wallInFront(), maze.wallOnLeft(), maze.wallOnRight());
+    // print((uint8_t*)printbuf);
+    // printMaze();
     nextMovement = pathFinder->nextMovement(mouseX, mouseY, *this);
 
     return nextMovement;

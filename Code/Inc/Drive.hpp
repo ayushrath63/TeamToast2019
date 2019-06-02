@@ -27,7 +27,7 @@ extern PID motorLPID, motorRPID, encAnglePID, irAnglePID, distancePID;
 namespace Command {
 	extern etl::queue<DriveCommand, 255, etl::memory_model::MEMORY_MODEL_SMALL> Q;
 	extern bool complete; 
-	void setNextCommand(); 
+	DriveCommand setNextCommand(); 
 };
 
 void goForward(int cellCount = 1); 

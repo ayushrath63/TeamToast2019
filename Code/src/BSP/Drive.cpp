@@ -109,30 +109,29 @@ namespace Command {
 	bool complete = true; 
 };
 
-void Command::setNextCommand() {
+DriveCommand Command::setNextCommand() {
 	
 	MouseMovement nextMovement;
 	nextMovement = maze.nextMovement();
 	char printbuf[128];
 	sprintf(printbuf,"nextMovement: %d",nextMovement);
     print((uint8_t*)printbuf);
-    Q.clear();
+
 	switch(nextMovement) {
         case MoveForward:
-            Q.push(DriveCommand::FORWARD);
+            return DriveCommand::FORWARD;
             break;
         case MoveBackward:
-            Q.push(DriveCommand::TURN180);
-            Q.push(DriveCommand::FORWARD);
+            return DriveCommand::TURN180;
             break;
         case TurnClockwise:
-            Q.push(DriveCommand::TURNRIGHT);
+            return DriveCommand::TURNRIGHT;
             break;
         case TurnCounterClockwise:
-            Q.push(DriveCommand::TURNLEFT);
+            return DriveCommand::TURNLEFT;
             break;
         case TurnAround:
-            Q.push(DriveCommand::TURN180);
+            return DriveCommand::TURN180;
             break;
         case Wait:
             // Do nothing, try again
