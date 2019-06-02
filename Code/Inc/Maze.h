@@ -1,12 +1,14 @@
 #ifndef Maze_h
 #define Maze_h
 
-#include <string>
 
 #include "BitVector256.h"
 #include "MazeDefinitions.h"
 #include "Dir.h"
 #include "PathFinder.h"
+#include "Drive.hpp"
+#include "Floodfill.hpp"
+
 
 class Maze {
 public:
@@ -20,10 +22,13 @@ public:
 
     bool isOpen(unsigned x, unsigned y, Dir d) const;
     void setOpen(unsigned x, unsigned y, Dir d);
+    void setWall(unsigned x, unsigned y, Dir d);
 
     void moveForward();
     void moveBackward();
-
+    void discoverWalls();
+    void move(DriveCommand move);
+    void printMaze();
     inline void turnClockwise() {
         heading = clockwise(heading);
     }
@@ -37,7 +42,7 @@ public:
     }
 
 // public:
-    Maze(MazeDefinitions::MazeEncodingName name, PathFinder *pathFinder);
+    Maze(PathFinder *pathFinder);
 
     inline bool wallInFront() const {
         return !isOpen(mouseX, mouseY, heading);
@@ -51,6 +56,7 @@ public:
         return !isOpen(mouseX, mouseY, clockwise(heading));
     }
 
+    MouseMovement nextMovement();
     /**
      * Start running the mouse through the maze.
      * Terminates when the PathFinder's nextMovement method returns MouseMovement::Finish.
@@ -65,7 +71,6 @@ public:
      * @param infoLen: specifies the max characters of info to be drawn. If no info is supplied, blank spaces will be inserted.
      * @return string of rendered maze
      */
-    std::string draw(const size_t infoLen = 4) const;
 };
-
+extern Maze maze;
 #endif

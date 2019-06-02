@@ -1,57 +1,40 @@
-#ifndef __FLOODFILL_H__
-#define __FLOODFILL_H__
+#ifndef __FLOODFILL_HPP__
+#define __FLOODFILL_HPP__
 
-#include "main.h"
+#include "Maze.h"
+#include "MazeDefinitions.h"
+#include "PathFinder.h"
 #include <etl/stack.h>
+const unsigned short MAZE_LEN = 16;
+const int INFINITE = MAZE_LEN * MAZE_LEN;
 
-#define MAZE_LEN 16;
 
-class Cell {
+struct Cell {
+    int x; 
+    int y; 
+};
+
+
+
+class Floodfill : public PathFinder {
 public:
-	Cell (int x, int y); 
-	//
-	update(int north, int south, int west, int south);
+    Floodfill();
+    void setMaze(const Maze* maze);
+    MouseMovement nextMovement(unsigned x, unsigned y, const Maze &maze);
+
 private:
-	int x; 
-	int y; 
-	int north; 
-	int south; 
-	int west; 
-	int east; 
+    const Maze* m_maze;
+    etl::stack <Cell,256> ffstack;
+    unsigned short distances[MAZE_LEN][MAZE_LEN];
+    void printDistance();
+    void initializeDistances();
+    unsigned short getDistance(unsigned x, unsigned y, Dir heading);
+    unsigned short findMinDistanceOfNeighbors(unsigned short x, unsigned short y);
+    void setDistance(unsigned short x, unsigned short y, unsigned short val);
+    void runFloodFill(int x, int y);
+    bool atCenter(unsigned short x, unsigned short y);
+    void stack_push(int x, int y);
+
 };
-
-enum struct Direction:uint8_t{
-	NORTH,
-	SOUTH,
-	WEST,
-	EAST
-};
-
-// updates all the distance in distance Maze
-// pass in current cell. update untill all cell met condition  
-void runfloodfill(Cell cur);
-void forward() {
-	
-}
-
-class Floodfill {
-public: 
-	void updateMaze()
-	void nextMove()
-
-private: 
-	etl::stack<Cell, 256> sk;
-	int distanceMaze[MAZE_LEN][MAZE_LEN];
-	int wallMaze[MAZE_LEN][MAZE_LEN]
-	void initDistanceMaze(); // initialize the maze based on manhattan distance
-	void initWallMaze(); 
-	Cell curCell;
-	Cell goal; 
-	Direction curDir
-
-	
-
-}
-
 
 #endif

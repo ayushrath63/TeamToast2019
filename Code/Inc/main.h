@@ -118,6 +118,7 @@ volatile extern int diffL;
 volatile extern int diffR;
 volatile extern int EncAvg;
 volatile extern int EncAngle;
+
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus

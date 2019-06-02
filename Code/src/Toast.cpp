@@ -54,11 +54,14 @@
 #include "Drive.hpp"
 #include "Encoder.hpp"
 #include "Buzzer.hpp"
+#include "Maze.h"
+#include "Floodfill.hpp"
 #include <cmath>
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
-
+Floodfill floodfill;
+Maze maze(&floodfill);
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
 
@@ -130,6 +133,11 @@ int main(void)
 
   Buzzer buzz(&htim3, TIM_CHANNEL_3);
 
+
+  // Maze and floodfill
+  floodfill.setMaze(&maze);
+  /////////////////////////
+
   for(int i = 0; i < 3; i ++)
   {
     buzz.playMidiNote(126);
@@ -162,23 +170,26 @@ int main(void)
       motorR.setSpeed(0);
       motorL.setSpeed(0);
 
-      resetEncoder();
+      
       //buzz.playMidiNote(126);
       Command::complete = false;
-      HAL_Delay(10);
+      HAL_Delay(5000);
       if(nextCommand != DriveCommand::FORWARD)
       {
         HAL_Delay(200);
       }
       //buzz.playMidiNote(0);
+      
 
-      sprintf(printbuf,"F: %d %d, L: %d %d, R: %d %d\r\n", ifdetectedFrontWall(), IRLeft.value(), ifdetectedLeftWall(), IRTopLeft.value(), ifdetectedRightWall(), IRTopRight.value());
+      //sprintf(printbuf,"F: %d %d, L: %d %d, R: %d %d\r\n", ifdetectedFrontWall(), IRLeft.value(), ifdetectedLeftWall(), IRTopLeft.value(), ifdetectedRightWall(), IRTopRight.value());
       // print((uint8_t*)printbuf);
 
 	    // sprintf(printbuf,"R? %d, irError %d\r\n", ifdetectedRightWall(), (int)(irAnglePID.getError()));
       // print((uint8_t*)printbuf);
       if (Command::Q.empty()) {
+        maze.move(nextCommand);
         Command::setNextCommand(); // put new command into queue
+        resetEncoder();
       } else {
         Command::Q.pop_into(nextCommand);
       }
@@ -204,7 +215,7 @@ int main(void)
           goForward();
       }
     }
-    print((uint8_t*)printbuf);
+    //print((uint8_t*)printbuf);
     HAL_Delay(1);
 
     motorR.setSpeed(pwmR);
