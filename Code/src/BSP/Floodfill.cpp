@@ -34,22 +34,20 @@ MouseMovement Floodfill::nextMovement(unsigned x, unsigned y, const Maze &maze) 
        sprintf(printbuf,"Distance around it|| curDis:%d, disInFront: %d, disonleft: %d, disonRight: %d \n",curDist, getDistance(x, y, heading), getDistance(x, y, counterClockwise(heading)), getDistance(x, y, clockwise(heading)));
     print((uint8_t*)printbuf);
 
-   if (!maze.wallInFront() && getDistance(x, y, heading) < curDist)
-   {
-     return MoveForward;
-   }
-   else if (!maze.wallOnRight() &&
-            getDistance(x, y, clockwise(heading)) < curDist)
-   {
+  if (!maze.wallOnRight() &&
+            getDistance(x, y, clockwise(heading)) < curDist) {
      return TurnClockwise;
-   }
-   else if (!maze.wallOnLeft() &&
-            getDistance(x, y, counterClockwise(heading)) < curDist)
-   {
+   
+   } else if (!maze.wallOnLeft() &&
+            getDistance(x, y, counterClockwise(heading)) < curDist) {
      return TurnCounterClockwise;
-   }
-   else if (getDistance(x, y, opposite(heading)) < curDist)
-   {    
+   
+   } else if (!maze.wallInFront() && getDistance(x, y, heading) < curDist) {
+    
+    return MoveForward;
+   
+   }else if (getDistance(x, y, opposite(heading)) < curDist){    
+     
      return TurnAround;
    }
    return Wait;
