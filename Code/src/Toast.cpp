@@ -130,13 +130,21 @@ int main(void)
 
   Buzzer buzz(&htim3, TIM_CHANNEL_3);
 
-  HAL_Delay(2000);
   for(int i = 0; i < 3; i ++)
   {
     buzz.playMidiNote(126);
     HAL_Delay(100);
     buzz.playMidiNote(0);
   }
+
+  while(!ifdetectedFrontWall());
+  for(int i = 0; i < 3; i ++)
+  {
+    buzz.playMidiNote(126);
+    HAL_Delay(100);
+    buzz.playMidiNote(0);
+  }
+  HAL_Delay(2000);
 
   int32_t imuSum = 0; 
   char printbuf[128];
@@ -157,7 +165,11 @@ int main(void)
       resetEncoder();
       //buzz.playMidiNote(126);
       Command::complete = false;
-      HAL_Delay(20);
+      HAL_Delay(10);
+      if(nextCommand != DriveCommand::FORWARD)
+      {
+        HAL_Delay(200);
+      }
       //buzz.playMidiNote(0);
 
       sprintf(printbuf,"F: %d %d, L: %d %d, R: %d %d\r\n", ifdetectedFrontWall(), IRLeft.value(), ifdetectedLeftWall(), IRTopLeft.value(), ifdetectedRightWall(), IRTopRight.value());
@@ -171,23 +183,18 @@ int main(void)
         Command::Q.pop_into(nextCommand);
       }
     } else {
-      sprintf(printbuf,"F: %d %d, L: %d %d, R: %d %d\r\n", ifdetectedFrontWall(), IRLeft.value(), ifdetectedLeftWall(), IRTopLeft.value(), ifdetectedRightWall(), IRTopRight.value());
       
       switch(nextCommand) {
         case DriveCommand::FORWARD:
-          //sprintf(printbuf,"F\r\n");
           goForward();
           break;
         case DriveCommand::TURNLEFT:
-          //sprintf(printbuf,"L\r\n");
           turnLeft();
           break;
         case DriveCommand::TURNRIGHT:
-          //sprintf(printbuf,"R\r\n");
           turnRight();
           break;
         case DriveCommand::TURN180:
-          //sprintf(printbuf,"180\r\n");
           turn180();
           break;
         case DriveCommand::NONE:
@@ -199,6 +206,7 @@ int main(void)
     }
     print((uint8_t*)printbuf);
     HAL_Delay(1);
+
     motorR.setSpeed(pwmR);
     motorL.setSpeed(pwmL);
 

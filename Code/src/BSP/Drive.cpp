@@ -3,7 +3,6 @@
 #include <cmath>
 
 int pwmL, pwmR;
-const int CELL = 4450;
 
 PID motorLPID(20.0,0.35,0.5);
 PID motorRPID(20.0,0.35,0.5);
@@ -65,11 +64,12 @@ void goForward(int cellCount) {
 		adjustFront();
 		return;
 	}
-	distancePID.setTarget(cellCount * CELL);
-	float temp = distancePID.update(EncAvg);
-	float speed = temp > 15? 15 : temp;
-	move(speed,0.0);
-
+	else{
+		distancePID.setTarget(cellCount * CELL);
+		float temp = distancePID.update(EncAvg);
+		float speed = temp > 15? 15 : temp;
+		move(speed,0.0);
+	}
 	if(abs(distancePID.getError()) < 100)
 	{
 		Command::complete = true;
@@ -77,12 +77,13 @@ void goForward(int cellCount) {
 
 }
 void turnLeft(){
-	move(0,5250);
-	if (EncAngle >= 5250) Command::complete = true;
+	move(0,5000);
+	if (EncAngle >= 5000) Command::complete = true;
 }
+
 void turnRight(){
-	move(0,-5250);
-	if (EncAngle <= -5250) Command::complete = true;
+	move(0,-5000);
+	if (EncAngle <= -5000) Command::complete = true;
 }
 void turn180(){
 	move(0,10500);
@@ -107,63 +108,6 @@ namespace Command {
 };
 
 void Command::setNextCommand() {
-
-	 // char gzbuf[128];
-  //   sprintf(gzbuf,"SEND NEXT COMMAND");
-  //   print((uint8_t*)gzbuf);
-  //   int cmd = 0; 
-  //   int num = rand();
-  //   if (!ifdetectedLeftWall() &&!ifdetectedRightWall() && !ifdetectedFrontWall()) {
-  //   	cmd = num%3;
-  //   } else if (!ifdetectedLeftWall() &&!ifdetectedRightWall() ) {
-  //   	cmd = num%2 +1;
-  //   } else if (!ifdetectedLeftWall() &&!ifdetectedFrontWall() ) {
-  //   	cmd = num%2;
-  //   } else if (!ifdetectedRightWall() &&!ifdetectedFrontWall()) {
-  //   	cmd = num%2;
-  //   	cmd = cmd *2;
-  //   } else if (!ifdetectedRightWall()) {
-  //   	cmd = 2;
-  //   } else if (!ifdetectedLeftWall()) {
-  //   	cmd = 1;
-  //   } else if (!ifdetectedFrontWall()) {
-  //   	cmd = 0;
-  //   } else {
-  //   	cmd = 3;
-  //   }
-  //   switch(cmd) {
-  //   	case 0: // forward
-	 //    	cur_command = DriveCommand::FORWARD;
-		// 	next_command = DriveCommand::NONE;
-		// 	break;
-		// case 1: // Left
-		// 	cur_command = DriveCommand::TURNLEFT; 
-		// 	next_command = DriveCommand::FORWARD;
-		// 	break;
-		// case 2: 
-		// 	cur_command =  DriveCommand::TURNRIGHT; 
-		// 	next_command = DriveCommand::FORWARD;
-		// 	break;
-		// default:
-		// 	cur_command = DriveCommand::TURN180;
-		// 	next_command = DriveCommand::FORWARD;
-		// 	break;
-
-  //   }
-
-	// if (!ifdetectedFrontWall() && (rand()%3)) {
-	// 	cur_command = DriveCommand::FORWARD;
-	// 	next_command = DriveCommand::NONE;
-	// } else if (!ifdetectedLeftWall()&& (rand()%2)) {
-	// 	cur_command = DriveCommand::TURNLEFT; 
-	// 	next_command = DriveCommand::FORWARD;
-	// } else if (!ifdetectedRightWall()&& (rand()%2)) {
-	// 	cur_command =  DriveCommand::TURNRIGHT; 
-	// 	next_command = DriveCommand::FORWARD;
-	// } else {
-	// 	cur_command = DriveCommand::TURN180;
-	// 	next_command = DriveCommand::FORWARD;
-	// }
 
 	if (!ifdetectedFrontWall()) {
 		Q.push(DriveCommand::FORWARD);

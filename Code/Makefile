@@ -63,6 +63,23 @@ SRCSASM := $(wildcard */*/*/*/*/*/*/*/*.s) \
 	$(wildcard */*/*.s) \
 	$(wildcard */*.s)
 
+HEADERS := $(wildcard */*/*/*/*/*/*/*/*.h) \
+	$(wildcard */*/*/*/*/*/*/*.h) \
+	$(wildcard */*/*/*/*/*/*.h) \
+	$(wildcard */*/*/*/*/*.h) \
+	$(wildcard */*/*/*/*.h) \
+	$(wildcard */*/*/*.h) \
+	$(wildcard */*/*.h) \
+	$(wildcard */*.h)
+HEADERS += $(wildcard */*/*/*/*/*/*/*/*.hpp) \
+	$(wildcard */*/*/*/*/*/*/*.hpp) \
+	$(wildcard */*/*/*/*/*/*.hpp) \
+	$(wildcard */*/*/*/*/*.hpp) \
+	$(wildcard */*/*/*/*.hpp) \
+	$(wildcard */*/*/*.hpp) \
+	$(wildcard */*/*.hpp) \
+	$(wildcard */*.hpp)
+
 OBJS := $(SRC:%.c=$(OBJECT_DIR)/%.o) $(SRCSASM:%.s=$(OBJECT_DIR)/%.o)
 OBJS := $(OBJS:%.S=$(OBJECT_DIR)/%.o)  
 OBJS := $(OBJS:%.cpp=$(OBJECT_DIR)/%.o)
@@ -89,6 +106,8 @@ objdump: $(OBJS) buildelf
 	@echo -e "Generating Object Dump..."
 	$(PREFIX)objdump -xCd "$(BIN_DIR)/$(BIN_NAME).elf" > "$(BIN_DIR)/$(BIN_NAME).txt"
 	@echo -e ""
+
+$(OBJS): $(HEADERS)
 
 clean:
 	$(RM) $(RELEASE_DIR) $(DEBUG_DIR)
