@@ -212,8 +212,9 @@ int main(void)
         default:
           goForward();
       }
+      //Command::complete = true;
     }
-    //print((uint8_t*)printbuf);
+    print((uint8_t*)printbuf);
     HAL_Delay(1);
 
     motorR.setSpeed(pwmR);

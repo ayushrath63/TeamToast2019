@@ -113,9 +113,9 @@ DriveCommand Command::setNextCommand() {
 	
 	MouseMovement nextMovement;
 	nextMovement = maze.nextMovement();
-	char printbuf[128];
-	sprintf(printbuf,"nextMovement: %d",nextMovement);
-    print((uint8_t*)printbuf);
+	// char printbuf[128];
+	// sprintf(printbuf,"nextMovement: %d",nextMovement);
+    // print((uint8_t*)printbuf);
 
 	switch(nextMovement) {
         case MoveForward:
